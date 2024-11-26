@@ -396,7 +396,7 @@ func RetrieveArtifact(downloadUri string) (string, error) {
 				log.Fatal(err)
 				return "Error creating file at target location.", err
 			}
-			err = os.WriteFile(outputDir + fileName, body, 0777)  //set this to something else...
+			err = os.WriteFile(outputDir + fileName, body, 0644)
 			if err != nil {
 				log.Fatal(err)
 				return "Error downloading file to target location.", err
