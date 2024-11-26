@@ -1,7 +1,6 @@
 package operations
 
 import (
-	"artifactory/common"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,6 +9,8 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+
+	"github.com/raynaluzier/go-artifactory/common"
 )
 
 var statusCode string

@@ -1,10 +1,11 @@
 package main
 
 import (
-	_ "artifactory/common"
-	"artifactory/operations"
-	"artifactory/search"
 	"fmt"
+
+	_ "github.com/raynaluzier/go-artifactory/common"
+	"github.com/raynaluzier/go-artifactory/operations"
+	"github.com/raynaluzier/go-artifactory/search"
 )
 
 

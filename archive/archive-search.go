@@ -1,13 +1,14 @@
 package archive
 
 import (
-	"artifactory/common"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+
+	"github.com/raynaluzier/go-artifactory/common"
 )
 
 var request *http.Request

@@ -1,7 +1,6 @@
 package operations
 
 import (
-	"artifactory/common"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,6 +11,8 @@ import (
 	"os"
 	"path"
 	"strings"
+
+	"github.com/raynaluzier/go-artifactory/common"
 )
 
 type Contents struct {
@@ -217,7 +218,7 @@ func GetArtifactPath(artifName string) ([]string, error) {
 		return nil, err
 	}
 
-	// Now we have a list of repos to check through... can do another search for props...
+	// Now we have a list of repos to check through... can do another search for props... ** FINISH THIS
 	return listOfPaths, err
 }
 

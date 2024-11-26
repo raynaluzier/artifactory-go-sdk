@@ -1,15 +1,16 @@
 package search
 
 import (
-	"net/http"
-	"log"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
-	"errors"
-	"strings"
-	"artifactory/common"
+	"log"
+	"net/http"
 	"path"
+	"strings"
+
+	"github.com/raynaluzier/go-artifactory/common"
 )
 
 var request *http.Request
@@ -84,13 +85,6 @@ func GetArtifactsByProps(listKvProps []string) ([]string, error) {
 		err := errors.New("Unable to search by Property without at least one Property Name and, optionally, Value")
 		return nil, err
 	}
-
-	if err != nil {
-		fmt.Println("Unable to parse URL")
-		return nil, err
-	}
-	//fmt.Println(jsonData.Results[0].Uri)
-	return listArtifUris, nil
 }
 
 func GetArtifactsByName(artifName string) ([]string, error) {
@@ -145,12 +139,6 @@ func GetArtifactsByName(artifName string) ([]string, error) {
 		err := errors.New("Unable to search for Artifact without at least a partial Artifact name")
 		return nil, err
 	}
-	if err != nil {
-		fmt.Println("Unable to parse URL")
-		return nil, err
-	}
-	
-	return listArtifUris, nil
 }
 
 func FilterListByFileType(ext string, listArtifacts []string) ([]string, error) {
