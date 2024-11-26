@@ -71,12 +71,6 @@ func GetArtifactsByNameRepo(artifName, repo string) ([]string, error) {
 		err := errors.New("Unable to search for Artifact without at least a partial Artifact name and parent Repository name")
 		return nil, err
 	}
-	if err != nil {
-		fmt.Println("Unable to parse URL")
-		return nil, err
-	}
-	
-	return listArtifUris, nil
 }
 
 func GetArtifactVersions(groupId, artifName, repo string) ([]string, error) {
@@ -135,7 +129,6 @@ func GetArtifactVersions(groupId, artifName, repo string) ([]string, error) {
 			err := errors.New("No version results returned")
 			return nil, err
 		}
-
 	} else {
 		// If the group ID AND artifact name are not supplied, we'll throw an error
 		message := ("Supplied group ID is: " + groupId + " and artifact name is: " + artifName)
@@ -143,13 +136,6 @@ func GetArtifactVersions(groupId, artifName, repo string) ([]string, error) {
 		err := errors.New("Group ID and Artifact Name values can't be empty")
 		return nil, err
 	}
-
-	if err != nil {
-		fmt.Println("Unable to parse URL")
-		return nil, err
-	}
-
-	return listVersions, nil
 }
 
 func GetArtifactLatestVersion(groupId, artifName, repo string) (string, error) {
@@ -201,6 +187,5 @@ func GetArtifactLatestVersion(groupId, artifName, repo string) (string, error) {
 		fmt.Println("Unable to parse URL")
 		return "", err
 	}
-
 	return latestVersion, nil
 }

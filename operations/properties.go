@@ -109,14 +109,14 @@ func GetArtifactPropVals(artifUri string, listPropKeys []string) (interface{}, e
 			return nil, err
 		}
 	}
-
+	/*
 	if err != nil {
 		fmt.Println("Unable to parse URL")
 		return nil, err
 	}
 
 	return properties, nil
-	
+	*/
 }
 
 func GetAllPropsForArtifact(artifUri string) (interface{}, error) {
