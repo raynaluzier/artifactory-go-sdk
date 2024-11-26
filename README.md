@@ -42,11 +42,11 @@ Archive also exists as a package, but it's really just a place to hold potential
 ## Function Reference
 A reference outline of each function's behavior and any special notes can be found in the corresponding documents below.
 
-- [Common](https://github.com/raynaluzier/go-artifactory/docs/common.md)
+- [Common](https://github.com/raynaluzier/go-artifactory/blob/main/docs/common.md)
 
-- [Operations/General](https://github.com/raynaluzier/go-artifactory/docs/ops-general.md)
+- [Operations/General](https://github.com/raynaluzier/go-artifactory/blob/main/docs/ops-general.md)
 
-- [Operations/Properties](https://github.com/raynaluzier/go-artifactory/docs/ops-properties.md)
+- [Operations/Properties](https://github.com/raynaluzier/go-artifactory/blob/main/docs/ops-properties.md)
 
-- [Search](https://github.com/raynaluzier/go-artifactory/docs/search.md)
+- [Search](https://github.com/raynaluzier/go-artifactory/blob/main/docs/search.md)
 
