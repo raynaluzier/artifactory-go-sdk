@@ -10,7 +10,7 @@ import (
 )
 
 func AuthCreds() (string, string) {
-	artifServer := os.Getenv("ARTIF")
+	artifServer := os.Getenv("ARTIFSERVER")
 	token := os.Getenv("TOKEN")
 	bearer := "Bearer " + token
 	return artifServer, bearer
@@ -67,7 +67,7 @@ func ReturnDuplicates(countMap map[string]int) []string {
 
 func SetArtifUriFromDownloadUri(downloadUri string) string {
 	downloadUri = strings.Replace(downloadUri, "8082", "8081", 1)  // Modify the server port from 8082 to 8081
-	artifServer := os.Getenv("ARTIF")                              // http://server.com:8081/artifactory/api
+	artifServer := os.Getenv("ARTIFSERVER")                              // http://server.com:8081/artifactory/api
 	trimmedServer := strings.TrimSuffix(artifServer, "/api")	   // http://server.com:8081/artifactory
 	artifSuffix := strings.TrimPrefix(downloadUri, trimmedServer)  // /repo-key/folder/path/artifact.ext
 	artifUri := artifServer + "/storage" + artifSuffix      // http://server.com:8081/artifactory/storage/repo-key/folder/path/artifact.ext
