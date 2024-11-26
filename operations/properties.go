@@ -12,8 +12,6 @@ import (
 	"strings"
 )
 
-//var request *http.Request - declared in general.go
-//var err error - declared in general.go
 var statusCode string
 
 // Used to store and structure the returned key/values that can be anything
