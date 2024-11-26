@@ -93,7 +93,6 @@ func ListRepos() ([]string, error) {
 		err := errors.New("No repos found")
 		return nil, err
 	}
-	//return listRepos, nil
 }
 
 func GetItemChildren(item string) ([]Contents, error) {
@@ -166,15 +165,6 @@ func GetItemChildren(item string) ([]Contents, error) {
 		err := errors.New("No item or path provided. Unable to get child items without parent item/path.")
 		return nil, err
 	}
-
-	/*
-	if err != nil {
-		fmt.Println("Unable to parse URL")
-		return nil, err
-	}
-
-	return childDetails, nil
-	*/
 }
 
 
@@ -308,13 +298,6 @@ func GetDownloadUri(artifPath, artifNameExt string) (string, error) {
 		err := errors.New("Unable to get artifact details without full path to the artifact")
 		return "", err
 	}
-	/*
-	if err != nil {
-		fmt.Println("Unable to parse URL")
-		return "", err
-	}
-	return downloadUri, nil
-	*/
 }
 
 func GetCreateDate(artifactUri string) (string, error) {
@@ -358,13 +341,6 @@ func GetCreateDate(artifactUri string) (string, error) {
 		err := errors.New("Unable to get artifact details without full path to the artifact")
 		return "", err
 	}
-	/*
-	if err != nil {
-		fmt.Println("Unable to parse URL")
-		return "", err
-	}
-	return createdDate, nil
-	*/
 }
 
 func RetrieveArtifact(downloadUri string) (string, error) {
@@ -550,13 +526,6 @@ func UploadFile(sourcePath, targetPath, fileSuffix string) (string, error) {
 		fmt.Println(message)
 		return "", err
 	}
-	/*
-	if err != nil {
-		fmt.Println("Unable to parse URL")
-		return "", err
-	}
-	return downloadUri, nil
-	*/
 }
 
 func DeleteArtifact(artifUri string) (string, error) {
@@ -593,11 +562,5 @@ func DeleteArtifact(artifUri string) (string, error) {
 		return "", err
 	}
 
-	/*
-	if err != nil {
-		fmt.Println("Unable to parse URL")
-		return "", err
-	}
-	*/
 	return statusCode, nil
 }

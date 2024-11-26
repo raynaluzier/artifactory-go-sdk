@@ -1,12 +1,12 @@
 package common
 
 import (
-	"strings"
 	"encoding/json"
-	"log"
-	"regexp"
 	"fmt"
+	"log"
 	"os"
+	"regexp"
+	"strings"
 )
 
 func AuthCreds() (string, string) {
@@ -160,7 +160,6 @@ func CheckAddSlashToPath(path string) string {
 			return path
 		}
 	}
-	return path
 }
 
 func ContainsSpecialChars(strings []string) bool {
