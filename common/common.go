@@ -43,7 +43,7 @@ func RemoveDuplicateStrings(listOfStrings []string) ([]string) {
 }
 
 func ReturnWithDupCounts(listOfStrings []string) (map[string]int) {
-	// Count occurances of each string and returns map of strings and their duplicate counts
+	// Count occurances of each string and returns map of strings and their duplication counts
 	countMap := make(map[string]int)
 	
 	for _, str := range listOfStrings {
@@ -54,7 +54,7 @@ func ReturnWithDupCounts(listOfStrings []string) (map[string]int) {
 
 func ReturnDuplicates(countMap map[string]int) []string {
 	// Takes in a count map of strings and their number of duplicate occurances (map[str1:1, str2:5, str3:1])
-	// For any strings with more than one occurance, the string is added to the duplicates lists and returned
+	// For any strings with more than one occurance, the string is added to the duplicates list and returned
 	duplicates := []string{}
 
 	for str, count := range countMap {
@@ -112,7 +112,7 @@ func EscapeSpecialChars(input string) (string) {
 }
 
 func createJsonString(input string) string {
-	// Used with SpecialChars function to properly format output directories that may include "\" in path
+	// Used with EscapeSpecialChars function to properly format output directories that may include "\" in path
 	jsonString := "{\"key\":\""
 	endJson := "\"}"
 	jsonString = jsonString + input + endJson

@@ -22,39 +22,140 @@ Uses a `.env` file to capture the target Artifactory server and Artifactory acco
 Converts input string to lowercase and returns converted value.
 
 #### Inputs
-| Name        | Description                                                                              | Type     | Required |
-|-------------|------------------------------------------------------------------------------------------|----------|:--------:|
-| inputStr    | Input string that should be converted to lowercase                                       | string   | TRUE     |
+| Name        | Description                                           | Type     | Required |
+|-------------|-------------------------------------------------------|----------|:--------:|
+| inputStr    | Input string that should be converted to lowercase    | string   | TRUE     |
 
 #### Outputs
-| Name        | Description                                                                              | Type     |
-|-------------|------------------------------------------------------------------------------------------|----------|
-| lowerStr    | Resulting string converted to lowercase                                                  | string   |
+| Name        | Description                                           | Type     |
+|-------------|-------------------------------------------------------|----------|
+| lowerStr    | Resulting string converted to lowercase               | string   |
 
 
 ## ConvertToUppercase
 Converts input string to uppercase and returns converted value.
 
 #### Inputs
-| Name        | Description                                                                              | Type     | Required |
-|-------------|------------------------------------------------------------------------------------------|----------|:--------:|
-| inputStr    | Input string that should be converted to uppercase                                       | string   | TRUE     |
+| Name        | Description                                           | Type     | Required |
+|-------------|-------------------------------------------------------|----------|:--------:|
+| inputStr    | Input string that should be converted to uppercase    | string   | TRUE     |
 
 #### Outputs
-| Name        | Description                                                                              | Type     |
-|-------------|------------------------------------------------------------------------------------------|----------|
-| upperStr    | Resulting string converted to uppercase                                                  | string   |
+| Name        | Description                                | Type     |
+|-------------|--------------------------------------------|----------|
+| upperStr    | Resulting string converted to uppercase    | string   |
 
 
 ## RemoveDuplicateStrings
 Searches list of provided strings and removes any duplicates. 
 
 #### Inputs
-| Name           | Description                                                                           | Type     | Required |
-|----------------|---------------------------------------------------------------------------------------|----------|:--------:|
-| listOfStrings  | List of strings to check for duplicates                                               | []string | TRUE     |
+| Name           | Description                              | Type     | Required |
+|----------------|------------------------------------------|----------|:--------:|
+| listOfStrings  | List of strings to check for duplicates  | []string | TRUE     |
 
 #### Outputs
-| Name        | Description                                                                              | Type     |
-|-------------|------------------------------------------------------------------------------------------|----------|
-| list        | Resulting list of strings will all duplicates removed                                    | []string |
+| Name        | Description                                            | Type     |
+|-------------|--------------------------------------------------------|----------|
+| list        | Resulting list of strings will all duplicates removed  | []string |
+
+
+## ReturnWithDupCounts
+Counts occurances of each string and returns a map of strings and a count of the number of times a duplicate instance of that string was found.
+
+#### Inputs
+| Name           | Description                              | Type     | Required |
+|----------------|------------------------------------------|----------|:--------:|
+| listOfStrings  | List of strings to check for duplicates  | []string | TRUE     |
+
+#### Outputs
+| Name        | Description                                        | Type           |
+|-------------|----------------------------------------------------|----------------|
+| countMap    | Resulting map of strings and duplication counts    | map[string]int |
+
+
+## ReturnDuplicates
+Takes in the `countMap` map of strings and number of occurances (ex: map[str1:1, str2:5, str3:1]). For any strings with more than one occurance, the string is added to the 'duplicates' list and returned
+
+#### Inputs
+| Name      | Description                           | Type           | Required |
+|-----------|---------------------------------------|----------------|:--------:|
+| countMap  | Map of string and duplication counts  | map[string]int | TRUE     |
+
+#### Outputs
+| Name        | Description                                                  | Type     |
+|-------------|--------------------------------------------------------------|----------|
+| duplicates  | Resulting list of strings that have more than one occurance  | []string |
+
+
+## SetArtifUriFromDownloadUri
+Some artifact operations can take either the Artifact's URI or it's download URI, which are slightly different URI strings. However, some operations cannot use the resulting download URI, so this function allows us a quick way to get the artifact's URI in instances where all we have is the download URI. 
+
+#### Inputs
+| Name        | Description                   | Type   | Required |
+|-------------|-------------------------------|--------|:--------:|
+| downloadUri | Download URI of the artifact  | string | TRUE     |
+
+#### Outputs
+| Name        | Description                  | Type     |
+|-------------|------------------------------|----------|
+| artifUri  | Resulting URI of the artifact  | string   |
+
+
+## SearchForExactString
+Searches an input string for an exact search team; for example: Search term "win2022" will return TRUE if the input string is "win2022" and FALSE if "win2022-iis".
+
+#### Inputs
+| Name        | Description                             | Type   | Required |
+|-------------|-----------------------------------------|--------|:--------:|
+| searchTerm  | The string name of an actual object     | string | TRUE     |
+| inputStr    | The string provided through user input  | string | TRUE     |
+
+#### Outputs
+| Name    | Description                                    | Type  |
+|---------|------------------------------------------------|-------|
+| result  | True/false whether the strings matched exactly | bool  |
+| err     | Resulting URI of the artifact                  | error |
+
+
+## EscapeSpecialChars
+Takes the input string (such as a directory path provided by an environment variable) and adds escape characters.
+For example:  F:\mypath\ becomes F:\\mypath
+
+#### Inputs
+| Name   | Description                                  | Type   | Required |
+|--------|----------------------------------------------|--------|:--------:|
+| input  | Input string to check; likely directory path | string | TRUE     |
+
+#### Outputs
+| Name    | Description                                    | Type   |
+|---------|------------------------------------------------|--------|
+| input   | Resulting string that's been properly escaped  | string |
+
+
+## createJsonString
+Used with  `EscapeSpecialChars` to create a JSONString from the input as part of the process to properly format string, like directories, that may include "\".
+
+#### Inputs
+| Name   | Description                                  | Type   | Required |
+|--------|----------------------------------------------|--------|:--------:|
+| input  | Input string to check; likely directory path | string | TRUE     |
+
+#### Outputs
+| Name       | Description                            | Type   |
+|------------|----------------------------------------|--------|
+| jsonString | Resulting JSON string of the input     | string |
+
+
+## createJsonString
+Used with  `EscapeSpecialChars` to create a JSONString from the input as part of the process to properly format string, like directories, that may include "\".
+
+#### Inputs
+| Name   | Description                                  | Type   | Required |
+|--------|----------------------------------------------|--------|:--------:|
+| input  | Input string to check; likely directory path | string | TRUE     |
+
+#### Outputs
+| Name       | Description                            | Type   |
+|------------|----------------------------------------|--------|
+| jsonString | Resulting JSON string of the input     | string |
