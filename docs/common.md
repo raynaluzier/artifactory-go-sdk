@@ -115,12 +115,12 @@ Searches an input string for an exact search team; for example: Search term "win
 | Name    | Description                                    | Type  |
 |---------|------------------------------------------------|-------|
 | result  | True/false whether the strings matched exactly | bool  |
-| err     | Resulting URI of the artifact                  | error |
+| err     | nil unless error; then returns error           | error |
 
 
 ## EscapeSpecialChars
 Takes the input string (such as a directory path provided by an environment variable) and adds escape characters.
-For example:  F:\mypath\ becomes F:\\mypath
+For example:  F:\mypath\ becomes F:\\mypath.
 
 #### Inputs
 | Name   | Description                                  | Type   | Required |
@@ -147,15 +147,59 @@ Used with  `EscapeSpecialChars` to create a JSONString from the input as part of
 | jsonString | Resulting JSON string of the input     | string |
 
 
-## createJsonString
-Used with  `EscapeSpecialChars` to create a JSONString from the input as part of the process to properly format string, like directories, that may include "\".
+## CheckPathType
+Checks the provided path to see if it's Unix-based (has '/') or Windows-based (has '\'). This is used in combination with `CheckAddSlashToPath` to add the appropriate ending slash type to given path if needed.
 
 #### Inputs
-| Name   | Description                                  | Type   | Required |
-|--------|----------------------------------------------|--------|:--------:|
-| input  | Input string to check; likely directory path | string | TRUE     |
+| Name  | Description                                          | Type   | Required |
+|-------|------------------------------------------------------|--------|:--------:|
+| path  | Path to provided directory; such as Output Directory | string | TRUE     |
 
 #### Outputs
-| Name       | Description                            | Type   |
-|------------|----------------------------------------|--------|
-| jsonString | Resulting JSON string of the input     | string |
+| Name       | Description                                        | Type |
+|------------|----------------------------------------------------|------|
+| isWinPath | Returns true of the provided path is Windows-based  | bool |
+
+
+## StringCompare
+Performs case INSENSITIVE comparison of strings (like file names) and returns TRUE if they match. This comparison does NOT do partial string comparisons, so 'win' and 'win-2022' would be false.
+
+#### Inputs
+| Name       | Description                                              | Type   | Required |
+|------------|----------------------------------------------------------|--------|:--------:|
+| inputStr   | String that was provided through some kind of user input | string | TRUE     |
+| actualStr  | String pulled from actual object name                    | string | TRUE     |
+
+#### Outputs
+| Name       | Description                                               | Type |
+|------------|-----------------------------------------------------------|------|
+| ture/false | Returns true of compared string match, regardless of case | bool |
+
+
+## CheckAddSlashToPath
+Used with `CheckPathType`; based on path type (Windows vs. Unix), checks the provided path to see if it ends with the appropriate back or forward slashes. If not present, the function will add a slash as appropriate to the platform type. This ensures the output directory path provided is formatted as required.
+
+#### Inputs
+| Name       | Description                                              | Type   | Required |
+|------------|----------------------------------------------------------|--------|:--------:|
+| inputStr   | String that was provided through some kind of user input | string | TRUE     |
+| actualStr  | String pulled from actual object name                    | string | TRUE     |
+
+#### Outputs
+| Name       | Description                                               | Type |
+|------------|-----------------------------------------------------------|------|
+| ture/false | Returns true if compared string match, regardless of case | bool |
+
+
+## ContainsSpecialChars
+Checks for the special characters that are disallowed by Artifactory in Properties. This function returns TRUE if any of the characters are found.
+
+#### Inputs
+| Name       | Description                                     | Type     | Required |
+|------------|-------------------------------------------------|----------|:--------:|
+| strings    | List of strings to check for special characters | []string | TRUE     |
+
+#### Outputs
+| Name       | Description                                                    | Type |
+|------------|----------------------------------------------------------------|------|
+| ture/false | Returns true if any of the strings contains special characters | bool |

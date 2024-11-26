@@ -172,7 +172,7 @@ func GetItemChildren(item string) ([]Contents, error) {
 func GetArtifactPath(artifName string) ([]string, error) {
 	// Takes in an artifact's name and searches Artifactory, returning the path to the artifact
 	// Searches are CASE SENSITIVE
-	// A path will be returned for every artifact FILE who's name includes the search string (e.g. paths for 
+	// A path will be returned for every artifact FILE whose name includes the search string (e.g. paths for 
 	// 'win2022' and 'win2022-iis' would both be returned)
 	// Multiple version files for a given artifact will result in the same path being added to the list multiple times
 	// So we will search for and remove duplicates before returning the results
