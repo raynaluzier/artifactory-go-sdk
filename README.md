@@ -33,22 +33,14 @@ These functions are related specifically to searching for one or many artifacts.
 ### Archive
 Archive also exists as a package, but it's really just a place to hold potentially useful functions that were created but have no immediate use. These artifacts are found under the **archive-search.go** file as they are related to searching for artifacts. They are more specific to artifacts that make use of Layouts, which may/may not be the case and would result in different behaviors or errors if used against artifacts that did not use Layouts. Therefore, more generalized operations and search capabilities were favored instead.
 
-## The Functions
-The following outlines the behavior of each function and any special notes.
+## Function Reference
+A reference outline of each function's behavior and any special notes can be found in the corresponding documents below.
 
-## common/AuthCreds
-Uses a `.env` file to capture the target Artifactory server and Artifactory account Identity Token
+[Common](https://github.com/raynaluzier/go-artifactory/docs/common.mdx)
 
-### Inputs
-| Name        | Description                                                                              | Type   | Required |
-|-------------|------------------------------------------------------------------------------------------|--------|:--------:|
-| TOKEN       | Identity Token for the Artifactory account executing the function calls                  | string | TRUE     |
-| ARTIFSERVER | URL to the target Artifactory server; format: `server.com:8081/artifactory/api`          | string | TRUE     |
-| OUTPUTDIR   | Desired directory to output file/artifact to, such as in `RetrieveArtifact` operations   | string | FALSE    |
-|             | * If not specified, file will be dropped at the top-level directory of this module       |        |          |
+[Operations/General](https://github.com/raynaluzier/go-artifactory/docs/ops-general.mdx)
 
-### Outputs
-| Name        | Description                                                                      | Type   |
-|-------------|----------------------------------------------------------------------------------|--------|
-| artifServer | URL to the target Artifactory server; format: `server.com:8081/artifactory/api`  | string |
-| bearer      | Forms bearer token to be passed with REST API Call to Artifactory                | string |
+[Operations/Properties](https://github.com/raynaluzier/go-artifactory/docs/ops-properties.mdx)
+
+[Search](https://github.com/raynaluzier/go-artifactory/docs/search.mdx)
+
