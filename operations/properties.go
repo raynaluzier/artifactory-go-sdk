@@ -132,8 +132,7 @@ func GetAllPropsForArtifact(artifUri string) (interface{}, error) {
 				fmt.Printf("Could not unmarshal %s\n", err)
 			}
 
-			// As long as the property results are not empty, parse thru the property keys and values
-			// The property keys are returned as a string, but the values must be converted to string first
+			// The property keys are returned as a string, but the values must be converted to string as well,
 			// and the surrounding [ ] brackets are trimmed off
 			// Each key/value pair are stored in a struct of type 'prop' and returned, allowing for easier parsing later
 			var strValue string
@@ -246,8 +245,14 @@ func FilterListByProps(listArtifUris, listKvProps []string) (string, error) {
 				return foundItem, nil
 			}
 		} else if len(foundList) == 1 {
-			foundItem = foundList[0]
-			return foundItem, nil
+			if numProps == len(foundList) {
+				foundItem = foundList[0]
+				return foundItem, nil
+			} else {
+				err := errors.New("Artifacts found with at least one matching property. But no artifact was found with all properties.")
+				return "", err
+			}
+			
 		} else {
 			err := errors.New("No matching artifacts were found.")
 			return "", err
@@ -377,4 +382,3 @@ func DeleteArtifactProps(artifUri string, listProps []string) (string, error) {
 
 	return statusCode, nil
 }
-

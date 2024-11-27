@@ -24,7 +24,7 @@ func GetArtifactsByProps(listKvProps []string) ([]string, error) {
 	requestPath := artifBase + "/search/prop?"
 
 	if len(listKvProps) != 0 {
-		if len(listKvProps) > 1 {
+		if len(listKvProps) > 1{
 			// If there's more than one prop name/value supplied, adds the required '&' separater between them
 			strKvProps = strings.Join(listKvProps, "&")
 			request, err = http.NewRequest("GET", requestPath + strKvProps, nil)
@@ -122,7 +122,6 @@ func GetArtifactsByName(artifName string) ([]string, error) {
 			return nil, err
 		}
 	} else {
-		// If at least a partial artifact name isn't supplied, we'll throw an error
 		message := ("Supplied Artifact name is: " + artifName)
 		fmt.Println(message)
 		err := errors.New("Unable to search for Artifact without at least a partial Artifact name")
@@ -130,7 +129,7 @@ func GetArtifactsByName(artifName string) ([]string, error) {
 	}
 }
 
-func FilterListByFileType(ext string, listArtifUris []string) ([]string, error) {
+func FilterListByFileType(ext string, listArtifacts []string) ([]string, error) {
 	// If no extension is provided, the default filter will be VMware Templates (.vmxt)
 	var filteredList []string
 
@@ -138,13 +137,13 @@ func FilterListByFileType(ext string, listArtifUris []string) ([]string, error) 
 		ext = ".vmxt"
 	}
 
-	if len(listArtifUris) != 0 {
+	if len(listArtifacts) != 0 {
 		if strings.Contains(ext, ".") {			// If the file extension already contains '.', don't do anything
 		} else {
 			ext = "." + ext						// Otherwise, add leading '.'
 		}
 
-		for _, item := range listArtifUris {
+		for _, item := range listArtifacts {
 			if path.Ext(item) == ext {
 				filteredList = append(filteredList, item)
 			}
