@@ -17,19 +17,16 @@ func AuthCreds() (string, string) {
 }
 
 func ConvertToLowercase(inputStr string) string {
-	// Converts string to lowercase
 	lowerStr := strings.ToLower(inputStr)
 	return lowerStr
 }
 
 func ConvertToUppercase(inputStr string) string {
-	// Converts string to uppercase
 	upperStr := strings.ToUpper(inputStr)
 	return upperStr
 }
 
 func RemoveDuplicateStrings(listOfStrings []string) ([]string) {
-	// Searches list of strings and removes duplicates
 	allStrings := make(map[string]bool)
 
 	list := []string{}
@@ -43,7 +40,6 @@ func RemoveDuplicateStrings(listOfStrings []string) ([]string) {
 }
 
 func ReturnWithDupCounts(listOfStrings []string) (map[string]int) {
-	// Count occurances of each string and returns map of strings and their duplication counts
 	countMap := make(map[string]int)
 	
 	for _, str := range listOfStrings {
@@ -67,16 +63,15 @@ func ReturnDuplicates(countMap map[string]int) []string {
 
 func SetArtifUriFromDownloadUri(downloadUri string) string {
 	downloadUri = strings.Replace(downloadUri, "8082", "8081", 1)  // Modify the server port from 8082 to 8081
-	artifServer := os.Getenv("ARTIFSERVER")                              // http://server.com:8081/artifactory/api
+	artifServer := os.Getenv("ARTIFSERVER")                        // http://server.com:8081/artifactory/api
 	trimmedServer := strings.TrimSuffix(artifServer, "/api")	   // http://server.com:8081/artifactory
 	artifSuffix := strings.TrimPrefix(downloadUri, trimmedServer)  // /repo-key/folder/path/artifact.ext
-	artifUri := artifServer + "/storage" + artifSuffix      // http://server.com:8081/artifactory/storage/repo-key/folder/path/artifact.ext
+	artifUri := artifServer + "/storage" + artifSuffix             // http://server.com:8081/artifactory/storage/repo-key/folder/path/artifact.ext
 	
 	return artifUri
 }
 
 func SearchForExactString(searchTerm, inputStr string) (bool, error) {
-	// Searches an input string for an exact search term
 	// For example: "win2022" will return true if input string is "win2022", false if "win2022-iis"
 	result, err := regexp.MatchString("(?sm)^" + searchTerm + "$", inputStr)
 	if err != nil {
@@ -97,7 +92,7 @@ func EscapeSpecialChars(input string) (string) {
 	byteValue := []byte(jsonString)
 	err := json.Unmarshal(byteValue, &js)
 
-	// Escape spechail characters only if JSON unmarshal results in an error
+	// Escape special characters only if JSON unmarshal results in an error
 	if err != nil {
 		out, err := json.Marshal(input)
 		if err != nil {
@@ -126,8 +121,8 @@ func CheckPathType(path string) bool {
 }
 
 func StringCompare(inputStr, actualStr string) bool {
-	// Performs case INSENSITIVE comparision of strings (like file names); returns true if they match
-	// Does NOT do partial string comparisons; "win" and "win-2022" will be false
+	// Performs case INSENSITIVE comparision of strings (like file names)
+	// Does NOT do partial string comparisons
 	if strings.EqualFold(inputStr, actualStr) {
 		return true
 	} else {   // Different strings
@@ -136,8 +131,6 @@ func StringCompare(inputStr, actualStr string) bool {
 }
 
 func CheckAddSlashToPath(path string) string {
-	// Based on path type (Win vs Unix), checks path to see if it ends with appropriate back or forward slash, if not, will add as appropriate
-	// This is to ensure the output directory path provided is formatted as required
 	lastChar := path[len(path)-1:]
 	winPath := CheckPathType(path)
 

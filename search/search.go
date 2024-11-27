@@ -18,21 +18,13 @@ var err error
 
 func GetArtifactsByProps(listKvProps []string) ([]string, error) {
 	// Searches for an artifact by one or more property names and optionally values if provided (e.g. release or release=stable)
-	// Search will return all artifacts that meet the search criteria
-	// Multiple properties with no values should be separated by a '&' (ex: "release&channel")
-	// Multiple prop keys and values should also be separated by a '&'; prop keys/values should be in format of "propKey=value"
-	// (ex: "release=stable&channel=windows-prod")
 	var strKvProps string
 	listArtifUris := []string{}
 	artifBase, bearer := common.AuthCreds()
 	requestPath := artifBase + "/search/prop?"
 
-	// Assuming prop(s) or prop key(s)/value(s) coming over in a list of strings, like {"release=stable", "channel=windows-lab"}; 
-	// or, {"release", "channel"}
 	if len(listKvProps) != 0 {
-		// Determines whether we will format a list of properties/values first, or passing a single property/value 
-		// before making the API call
-		if len(listKvProps) > 1{
+		if len(listKvProps) > 1 {
 			// If there's more than one prop name/value supplied, adds the required '&' separater between them
 			strKvProps = strings.Join(listKvProps, "&")
 			request, err = http.NewRequest("GET", requestPath + strKvProps, nil)
@@ -58,7 +50,6 @@ func GetArtifactsByProps(listKvProps []string) ([]string, error) {
 			} `json:"results"`
 		}
 	
-		// Unmarshal the JSON return
 		var jsonData *resultsJson
 		err = json.Unmarshal(body, &jsonData)
 		if err != nil {
@@ -79,7 +70,6 @@ func GetArtifactsByProps(listKvProps []string) ([]string, error) {
 		}
 
 	} else {
-		// If no properties were supplied, we'll throw an error
 		message := ("Supplied Property Name(s)/Value(s): " + strKvProps)
 		fmt.Println(message)
 		err := errors.New("Unable to search by Property without at least one Property Name and, optionally, Value")
@@ -88,7 +78,7 @@ func GetArtifactsByProps(listKvProps []string) ([]string, error) {
 }
 
 func GetArtifactsByName(artifName string) ([]string, error) {
-	// Searches for artifacts by artifact name (can be partial)
+	// Searches for artifacts by artifact name (can be partial); search is CASE INSENSITIVE
 	listArtifUris := []string{}
 	artifBase, bearer := common.AuthCreds()
 	requestPath := artifBase + "/search/artifact?name=" + artifName
@@ -113,7 +103,6 @@ func GetArtifactsByName(artifName string) ([]string, error) {
 			} `json:"results"`
 		}
 		
-		// Unmarshal the JSON return
 		var jsonData *resultsJson
 		err = json.Unmarshal(body, &jsonData)
 		if err != nil {
@@ -141,8 +130,7 @@ func GetArtifactsByName(artifName string) ([]string, error) {
 	}
 }
 
-func FilterListByFileType(ext string, listArtifacts []string) ([]string, error) {
-	// Filters list of artifact URIs by file type
+func FilterListByFileType(ext string, listArtifUris []string) ([]string, error) {
 	// If no extension is provided, the default filter will be VMware Templates (.vmxt)
 	var filteredList []string
 
@@ -150,13 +138,13 @@ func FilterListByFileType(ext string, listArtifacts []string) ([]string, error) 
 		ext = ".vmxt"
 	}
 
-	if len(listArtifacts) != 0 {
+	if len(listArtifUris) != 0 {
 		if strings.Contains(ext, ".") {			// If the file extension already contains '.', don't do anything
 		} else {
 			ext = "." + ext						// Otherwise, add leading '.'
 		}
 
-		for _, item := range listArtifacts {
+		for _, item := range listArtifUris {
 			if path.Ext(item) == ext {
 				filteredList = append(filteredList, item)
 			}

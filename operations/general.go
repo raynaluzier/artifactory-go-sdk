@@ -50,7 +50,6 @@ var foundPaths []string
 
 
 func ListRepos() ([]string, error) {
-	// Gets list of Repos in Artifactory instance
 	var listRepos []string
 	artifBase, bearer := common.AuthCreds()
 	requestPath := artifBase + "/repositories"
@@ -76,15 +75,12 @@ func ListRepos() ([]string, error) {
 		PackageType	string	`json:"packageType"`
 	}
 
-	// Unmarshal the JSON return
 	var jsonData []reposJson
 	err = json.Unmarshal(body, &jsonData)
 	if err != nil {
 		fmt.Printf("Could not unmarshal %s\n", err)
 	}
 
-	// As long as the results are not empty, parse the results append the repo names to 
-	// the list of strings
 	if len(jsonData) != 0 {
 		for _, k := range jsonData {
 			listRepos = append(listRepos, k.Key)
@@ -97,11 +93,7 @@ func ListRepos() ([]string, error) {
 }
 
 func GetItemChildren(item string) ([]Contents, error) {
-	// Returns the children of the given item and whether that child is a folder or not (bool)
 	// Item can represent a repo name or a combo of repo/child_folder/subchild_folder/etc
-
-	// If item is the full path and filename to the artifact itself, no results will be returned as artifacts
-	// do not have children. However, artifacts can be children themselves.
 	artifBase, bearer := common.AuthCreds()
 	requestPath := artifBase + "/storage/" + item
 
@@ -122,7 +114,6 @@ func GetItemChildren(item string) ([]Contents, error) {
 
 	var childDetails []Contents
 
-	// If the item (folder or artifact) is not empty, get the details of the item
 	if (item != "") {
 		request, err = http.NewRequest("GET", requestPath, nil)
 		request.Header.Add("Authorization", bearer)
@@ -136,7 +127,6 @@ func GetItemChildren(item string) ([]Contents, error) {
 		body, err := io.ReadAll(response.Body)
 		//fmt.Println(string(body))
 
-		// Unmarshal the JSON return
 		var jsonData *itemResults
 		err = json.Unmarshal(body, &jsonData)
 		if err != nil {
@@ -172,16 +162,11 @@ func GetItemChildren(item string) ([]Contents, error) {
 func GetArtifactPath(artifName string) ([]string, error) {
 	// Takes in an artifact's name and searches Artifactory, returning the path to the artifact
 	// Searches are CASE SENSITIVE
-	// A path will be returned for every artifact FILE whose name includes the search string (e.g. paths for 
-	// 'win2022' and 'win2022-iis' would both be returned)
-	// Multiple version files for a given artifact will result in the same path being added to the list multiple times
-	// So we will search for and remove duplicates before returning the results
 	var childList []Contents
 	var listOfPaths []string
 	foundPaths = nil
 
 	if artifName != "" {
-		// Get a list of the available repos
 		listRepos, err := ListRepos()
 		if err != nil || listRepos[0] == "" || len(listRepos) == 0 {
 			err := errors.New("No repos found")
@@ -197,7 +182,7 @@ func GetArtifactPath(artifName string) ([]string, error) {
 			}
 
 			if len(listOfPaths) > 1 {
-				//We'll search the list for duplicates and remove them
+				// We'll search the list for duplicates and remove them
 				listOfPaths = common.RemoveDuplicateStrings(listOfPaths)
 				if len(listOfPaths) > 1 {
 					fmt.Println("More than one possible artifact path found")
@@ -224,9 +209,6 @@ func GetArtifactPath(artifName string) ([]string, error) {
 
 func RecursiveSearch(list []Contents, artifName, searchPath string, foundPaths []string) ([]string) {
 	// Recursively searches a list of child items for the specificied artifact name 
-	// For each child item in the list, if item isn't a folder, checks if the child item contains
-	// the desired artifact name. If so, the matching item's path will be added to the foundPath list. 
-	// If not, the search path will be updated to check the next layer down, and the search will run again
 	var nextList []Contents
 	var currentPath string
 	currentPath = searchPath
@@ -259,12 +241,10 @@ func RecursiveSearch(list []Contents, artifName, searchPath string, foundPaths [
 
 func GetDownloadUri(artifPath, artifNameExt string) (string, error) {
 	// Requires full path to the artifact, include full artifact name with extention
-	// Gets the artifact details and will return the download URI used to retrieve the artifact
 	artifBase, bearer := common.AuthCreds()
 	requestPath := artifBase + "/storage" + artifPath + "/" + artifNameExt
 	var downloadUri string
 
-	// Ensures the required path components are not empty before doing a GET request
 	if (artifPath != "") && (artifNameExt != "") {
 		request, err = http.NewRequest("GET", requestPath, nil)
 		request.Header.Add("Authorization", bearer)
@@ -277,14 +257,12 @@ func GetDownloadUri(artifPath, artifNameExt string) (string, error) {
 		defer response.Body.Close()
 		body, err := io.ReadAll(response.Body)
 
-		// Unmarshal the JSON return
 		var jsonData *artifJson
 		err = json.Unmarshal(body, &jsonData)
 		if err != nil {
 			fmt.Printf("Could not unmarshal %s\n", err)
 		}
 
-		// As long as the Download URI field is not empty, parse and return the Download URI
 		if jsonData.DownloadUri != "" {
 			downloadUri = jsonData.DownloadUri
 			return downloadUri, nil
@@ -293,7 +271,6 @@ func GetDownloadUri(artifPath, artifNameExt string) (string, error) {
 			return "", err
 		}
 	} else {
-		// If the required path components are not supplied, we'll throw an error
 		message := ("Supplied artifact path: " + artifPath + " and full artifact name: " + artifNameExt)
 		fmt.Println(message)
 		err := errors.New("Unable to get artifact details without full path to the artifact")
@@ -302,12 +279,9 @@ func GetDownloadUri(artifPath, artifNameExt string) (string, error) {
 }
 
 func GetCreateDate(artifactUri string) (string, error) {
-	// Requires full path to the artifact, include full artifact name with extention
-	// Gets the artifact details and will return the string date created
 	_, bearer := common.AuthCreds()
 	var createdDate string
 
-	// Ensures the required path components are not empty before doing a GET request
 	if (artifactUri != "") {
 		request, err = http.NewRequest("GET", artifactUri, nil)
 		request.Header.Add("Authorization", bearer)
@@ -320,14 +294,12 @@ func GetCreateDate(artifactUri string) (string, error) {
 		defer response.Body.Close()
 		body, err := io.ReadAll(response.Body)
 
-		// Unmarshal the JSON return
 		var jsonData *artifJson
 		err = json.Unmarshal(body, &jsonData)
 		if err != nil {
 			fmt.Printf("Could not unmarshal %s\n", err)
 		}
 
-		// As long as the Created field is not empty, parse and return the Create Date
 		if jsonData.Created != "" {
 			createdDate = jsonData.Created
 			return createdDate, nil
@@ -336,7 +308,6 @@ func GetCreateDate(artifactUri string) (string, error) {
 			return "", err
 		}
 	} else {
-		// If the required path components are not supplied, we'll throw an error
 		message := ("Supplied artifact path: " + artifactUri)
 		fmt.Println(message)
 		err := errors.New("Unable to get artifact details without full path to the artifact")
@@ -361,7 +332,6 @@ func RetrieveArtifact(downloadUri string) (string, error) {
 		outputDir = ""
 	}
 
-	// If we have a download URI, get the artifact and download it
 	if downloadUri != "" {
 		request, err = http.NewRequest("GET", downloadUri, nil)
 		request.Header.Add("Authorization", bearer)
@@ -378,7 +348,7 @@ func RetrieveArtifact(downloadUri string) (string, error) {
 		if response.StatusCode == 404 {
 			err := errors.New("File not found.")
 			return "File download failed.", err
-		} else {  // File was found
+		} else {
 			// Create file name from download URI path of artifact
 			fileUrl, err := url.Parse(downloadUri)
 			if err != nil {
@@ -413,11 +383,7 @@ func RetrieveArtifact(downloadUri string) (string, error) {
 }
 
 func UploadFile(sourcePath, targetPath, fileSuffix string) (string, error) {
-	// sourcePath includes full file path; needs proper escape chars (ex: h:\\lab\\artifact.txt OR /lab/artifact.txt)
-	// targetPath will be /repo-key/folder/path/
-	// The target FILENAME will match the source filename as it exists in the source directory
-	// fileSuffix is a placeholder for potential distinguishing values such as dates, versions, etc. 
-		// If "", it will be ignored. Otherwise, it will be appended to target FILENAME.
+	//** TO DO: Option to get previous 'version' and increment
 
 	var downloadUri string
 	var filePath string
@@ -483,11 +449,9 @@ func UploadFile(sourcePath, targetPath, fileSuffix string) (string, error) {
 				fileName = justName + separater + fileSuffix + fileExt
 			}   // If blank, then the original filename will be used
 			
-			// Now we're ready to form our request inputs and make the API call
 			newArtifactPath := trimmedBase + targetPath + fileName                  // Forms: http://artifactory_base_api_url/repo-key/folder/artifact.txt
 			data := strings.NewReader("@/" + sourcePath)                            // Formats the payload appropriately
 			
-			// Makes the API call to upload the specified file
 			request, err = http.NewRequest("PUT", newArtifactPath, data)
 			request.Header.Add("Authorization", bearer)
 	
@@ -498,30 +462,26 @@ func UploadFile(sourcePath, targetPath, fileSuffix string) (string, error) {
 			}
 			defer response.Body.Close()
 			body, err := io.ReadAll(response.Body)
-			// Prints the response which includes the details about the new artifact
 			fmt.Println(string(body))
 	
-			// Unmarshals the JSON data
 			var jsonData *artifJson
 			err = json.Unmarshal(body, &jsonData)
 			if err != nil {
 				fmt.Printf("Could not unmarshal %s\n", err)
 			}
 	
-			// As long as the Download URI is populated, we'll parse and return the Download URI
 			if jsonData.DownloadUri != "" {
 				downloadUri = jsonData.DownloadUri
 				return downloadUri, nil
-			} else {  // Otherwise, we will throw an error
+			} else {
 				err = errors.New("There is no download URI for the artifact")
 				return "", err
 			}
-		} else {  // No file extension found
+		} else {
 			err = errors.New("No file extension found in source path. Ensure source includes path and source file with extension.")
 			return "", err
 		}
 	} else {
-		// If the required components are not supplied, we will throw an error
 		message := ("Supplied source path: " + sourcePath + ", target path: " + targetPath)
 		err := errors.New("Cannot upload file without source path/file, target path, and artifact file name")
 		fmt.Println(message)
@@ -530,7 +490,6 @@ func UploadFile(sourcePath, targetPath, fileSuffix string) (string, error) {
 }
 
 func DeleteArtifact(artifUri string) (string, error) {
-    // Takes in artifact's URI and executes a DELETE call against it
 	_, bearer := common.AuthCreds()
 
 	if artifUri != "" { 
@@ -546,22 +505,18 @@ func DeleteArtifact(artifUri string) (string, error) {
 		body, err := io.ReadAll(response.Body)
 		fmt.Println(string(body))
 		
-		// If the request is successful, it will simply return a status code of 204
 		if response.StatusCode == 204 {
 			fmt.Println("Request completed successfully")
 			statusCode = "204"
 		} else {
-			// If the request fails, it will return a status code of 400
 			fmt.Println("Unable to complete request")
 			statusCode = "404"
 		}
 	} else {
-		// If the required component is not supplied, we will throw an error
 		message := ("Supplied artifact path is: " + artifUri)
 		fmt.Println(message)
 		err := errors.New("Unable to DELETE item without artifact URI.")
 		return "", err
 	}
-
 	return statusCode, nil
 }

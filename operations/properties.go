@@ -15,23 +15,18 @@ import (
 
 var statusCode string
 
-// Used to store and structure the returned key/values that can be anything
 type prop struct {
 	Name string
 	Value string
 }
 
 func GetArtifactPropVals(artifUri string, listPropKeys []string) (interface{}, error){
-	// Takes in the URI of the artifact, plus one or more property keys
 	// Returns the values for only the properties included in the URI for the given artifact
 	// Search is CASE SENSTIVE
 	_, bearer := common.AuthCreds()
 	var properties []prop
 	
-	// Ensures the components of the required full artifact path along with at least one or more properties is not empty
 	if artifUri != "" {
-		// Determines whether we will format a list of properties first, or pass a single property
-		// before making the API call
 		if len(listPropKeys) > 1 {
 			// If there's more than one property name supplied, adds the required ',' separater between them
 			strProps := strings.Join(listPropKeys, ",")
@@ -56,7 +51,7 @@ func GetArtifactPropVals(artifUri string, listPropKeys []string) (interface{}, e
 		if err != nil || response.StatusCode == 404 {
 			err := errors.New("No matching property(ies) could be found")
 			return nil, err
-		} else {  // There was no error
+		} else {
 			// Declares a map whose key type is a string with any value type
 			// This is used because the returned JSON data is unstructured; 'properties' contains one or more key/values that
 			// correspond to a property name and property value that can be anything
@@ -68,7 +63,6 @@ func GetArtifactPropVals(artifUri string, listPropKeys []string) (interface{}, e
 				fmt.Printf("Could not unmarshal %s\n", err)
 			}
 
-			// As long as the property results are not empty, parse thru the property keys and values
 			// The property keys are returned as a string, but the values must be converted to string first
 			// and the surrounding [ ] brackets are trimmed off
 			// Each key/value pair are stored in a struct of type 'prop' and returned, allowing for easier parsing later
@@ -94,15 +88,12 @@ func GetArtifactPropVals(artifUri string, listPropKeys []string) (interface{}, e
 		}
 
 	} else {
-		// If no properties were supplied, we'll throw an error
 		message := ("Artifact URI is: " + artifUri)
 		if len(listPropKeys) != 0 && listPropKeys[0] != "" {
-			// If the artifact URI wasn't provided, we'll throw an error
 			fmt.Println(message)
 			err := errors.New("Unable to search for Artifact properties without the artifact's URI")
 			return nil, err
 		} else {
-			// If at least one property wasn't provided, we'll throw an error
 			fmt.Println(message)
 			err := errors.New("Unable to search for Artifact properties without the artifact's URI and one or more property names")
 			return nil, err
@@ -111,7 +102,6 @@ func GetArtifactPropVals(artifUri string, listPropKeys []string) (interface{}, e
 }
 
 func GetAllPropsForArtifact(artifUri string) (interface{}, error) {
-	// Takes in the URI of a given artifact and pulls all the properties and their values assigned to the artifact
 	_, bearer := common.AuthCreds()
 	var properties [] prop
 
@@ -175,11 +165,6 @@ func GetAllPropsForArtifact(artifUri string) (interface{}, error) {
 }
 
 func FilterListByProps(listArtifUris, listKvProps []string) (string, error) {
-	// Takes in a list of artifact URIs; for each URI, pulls its list of properties
-	// Then compares the list of one or more key/value pairs ('key=value') provided to the key/values assigned to the artifact
-	// If there's a match, the artifact URI will be added to the filteredList
-	// The same URI may be added to the list for multiple property matches, 
-	
 	var foundList []string
 	var filteredList []string
 	var structData []map[string]interface{}
@@ -212,11 +197,6 @@ func FilterListByProps(listArtifUris, listKvProps []string) (string, error) {
 					propVal := fmt.Sprintf("%v", structData[idx]["Value"])
 					propCompare := propName + "=" + propVal
 
-					// For each key/value property provided as input, compare it to what was returned from the artifact
-					// If the property key/value pair matches, add the artifact to the foundList
-					// If more than one property key/value pair was input as a filter, an instance of the matching artifact 
-					// will be added added to the foundList; we'll handle this situation below
-					// So inputting 3 property key/value pairs will result in 3 instances of the artifact in the foundList
 					for k := 0; k < len(listKvProps); k++ {
 						if propCompare == listKvProps[k] {
 							fmt.Println("Property found: " + listArtifUris[a])
@@ -224,18 +204,9 @@ func FilterListByProps(listArtifUris, listKvProps []string) (string, error) {
 						}
 					}
 				}
-				
 			}
 		}
 
-		// For ex: If 3 property key/value pairs were input as filters, we'd expect that any artifact that has ALL of those matching
-		// properties is more likely the artifact we're looking for. However, it's possible that multiple artifacts have those same property
-		// key/value pairs ('release=stable', 'testing=passed') for a given artifact (new 'win-22' image built over multiple days).
-		
-		// If only one artifact is present in the foundList, we'll return this as the artifact. 
-		// If multiple artifacts (ex. 'win-22') with the same exact properties are returned, then we'll return the latest based on 'created' date
-
-		// If more than one artifact is returned in the foundList...
 		if len(foundList) > 1 {
 			// Count the occurance of duplicate artifacts and return a map of the artifact and duplicate count
 			countMap := common.ReturnWithDupCounts(foundList)
@@ -246,35 +217,38 @@ func FilterListByProps(listArtifUris, listKvProps []string) (string, error) {
 					filteredList = append(filteredList, str)
 				}
 			}
+			// If only one item resulted in the filtered list, we will return it
+			if len(filteredList) == 1 {
+				foundItem = filteredList[0]
+				return foundItem, nil
+			} else {
+				// For each artifact in the filter list, we grab it's 'created' date and add that artifact and date to an array of maps
+				for i := 0; i < len(filteredList); i++ {
+					addMap := make(map[string]string)
+					created, err := GetCreateDate(filteredList[i])
+					if err != nil {
+						fmt.Println("Error getting created date")
+					}
+					//fmt.Println(created)
 
-			// For each artifact in the filter list, we grab it's 'created' date and add that artifact and date to an array of maps
-			for i := 0; i < len(filteredList); i++ {
-				addMap := make(map[string]string)
-				created, err := GetCreateDate(filteredList[i])
-				if err != nil {
-					fmt.Println("Error getting created date")
+					addMap["artifact"] = filteredList[i]
+					addMap["created"] = created
+					dateMap = append(dateMap, addMap)
+
+					//fmt.Println(dateMap[i]["artifact"], dateMap[i]["created"])
 				}
-				//fmt.Println(created)
-
-				addMap["artifact"] = filteredList[i]
-				addMap["created"] = created
-				dateMap = append(dateMap, addMap)
-
-				//fmt.Println(dateMap[i]["artifact"], dateMap[i]["created"])
+				// Sort by 'created' date and return the latest instance of the artifact
+				sort.Slice(dateMap, func(i, j int) bool { 
+					return dateMap[i]["created"] < dateMap[j]["created"]
+				})
+				latest := len(dateMap) - 1
+				foundItem = dateMap[latest]["artifact"]
+				return foundItem, nil
 			}
-			// Sort by 'created' date and return the latest instance of the artifact
-			sort.Slice(dateMap, func(i, j int) bool { 
-				return dateMap[i]["created"] < dateMap[j]["created"]
-			})
-			latest := len(dateMap) - 1
-			foundItem = dateMap[latest]["artifact"]
-			return foundItem, nil
-
-		  // If only one matching artifact was found, return that artifact
 		} else if len(foundList) == 1 {
 			foundItem = foundList[0]
 			return foundItem, nil
-		} else {   // If no artifacts were founds...
+		} else {
 			err := errors.New("No matching artifacts were found.")
 			return "", err
 		}
@@ -283,20 +257,15 @@ func FilterListByProps(listArtifUris, listKvProps []string) (string, error) {
 }
 
 func SetArtifactProps(artifUri string, listKvProps []string) (string, error) {
-	// Takes in list of property key/value pairs and assigns them to the provided artifact
 	// Inputs are CASE SENSITIVE
-	// Requires artifact's URI, plus one or more property keys/values
-	// Disallows special characters: )( }{ ][ *+^$\/~`!@#%&<>;, and the SPACE character
 	_, bearer := common.AuthCreds()
 	requestPath := artifUri + "?properties="
 
-	//Checks for special characters in prop key/values; throws error if found
 	if common.ContainsSpecialChars(listKvProps) == true {
 		err := errors.New("Properties cannot contain special characters --> )( }{ ][ *+^$\\/~`!@#%&<>;, and SPACE")
 		fmt.Println("Special character found")
 		return "", err
 	} else {
-		// Ensures the artifact URI along with at least one or more property keys/values is not empty
 		if artifUri != "" && len(listKvProps) != 0 {
 			// Determines whether we will format a list of property keys/values first, or pass a single property key/value pair
 			// before making the API call
@@ -330,14 +299,11 @@ func SetArtifactProps(artifUri string, listKvProps []string) (string, error) {
 				statusCode = "400"
 			}
 		} else {
-			// If no property keys/values were supplied, we'll throw an error
 			numProps := len(listKvProps)
 			if numProps != 0 {
-				// If the artifact URI wasn't provided, we'll throw an error
 				err := errors.New("Unable to set Artifact properties without artifact's URI")
 				return "", err
 			} else {
-				// If at lease one property key/value weren't provided, we'll throw an error
 				err := errors.New("Unable to set Artifact properties without artifact's URI and one or more property names")
 				return "", err
 			}
@@ -353,12 +319,11 @@ func SetArtifactProps(artifUri string, listKvProps []string) (string, error) {
 }
 
 func DeleteArtifactProps(artifUri string, listProps []string) (string, error) {
-	// Takes in the artifact's URI and one or more property keys and removes the corresponding property from the provided artifact
+	// Inputs are CASE SENSITIVE
 	// If a property is provided that doesn't exist (which includes incorrectly cased properties), the API ignores this and will return a successful response
 	_, bearer := common.AuthCreds()
 	requestPath := artifUri + "?properties="
 
-	// Ensures the artifact URI along with at least one or more property keys is not empty
 	if artifUri != "" && len(listProps) != 0 {
 		// Determines whether we will format a list of property keys first, or pass a single property key
 		// before making the API call
@@ -392,16 +357,13 @@ func DeleteArtifactProps(artifUri string, listProps []string) (string, error) {
 			statusCode = "400"
 		}
 	} else {
-		// If no property keys were supplied, we'll throw an error
 		numProps := len(listProps)
 		message := ("Artifact Path is: " + artifUri)
 		if numProps != 0 {
-			// If the artifact URI was not provided, we'll throw an error
 			fmt.Println(message)
 			err := errors.New("Unable to delete Artifact properties without artifact URI")
 			return "", err
 		} else {
-			// If at lease one property key wasn't provided, we'll throw an error
 			fmt.Println(message)
 			err := errors.New("Unable to delete Artifact properties without artifact URI and one or more property names")
 			return "", err

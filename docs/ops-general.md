@@ -64,6 +64,7 @@ Depending how artifacts are named (for ex: myfile-1.0.0.iso, myfile-1.1.1.iso, m
 | artifName  | Name of the artifact to find                       | string      | TRUE     |
 | searchPath | Path to child item being searched                  | string      | TRUE     |
 | foundPaths | List of path(s) that contain target artiface name  | []string    | TRUE     |
+                *Initially, this will be nil
 
 #### Outputs
 | Name       | Description                                        | Type       |
@@ -111,10 +112,10 @@ This function gets the artifact via the provided Download URI and copies it to t
 | downloadUri   | URI of the artifact that allows the artifact to be downloaded | string  | TRUE     |
 
 #### Outputs
-| Name        | Description                                                 | Type     |
-|-------------|-------------------------------------------------------------|----------|
-| (msg) | String message indicating completion or failure of the download   | string   |
-| err         | nil unless error; then returns error                        | error    |
+| Name     | Description                                                       | Type     |
+|----------|-------------------------------------------------------------------|----------|
+| (msg)    | String message indicating completion or failure of the download   | string   |
+| err      | nil unless error; then returns error                              | error    |
 
 
 ## UploadFile
@@ -123,7 +124,7 @@ Uploads artifact to specified target path.
 /lab/artifact.txt. 
 `targetPath` should be in the format of '/repo-key/folder/path/'
 The target filename will match the source file as it exists in the source directory.
-`fileSuffix` is an optional placeholder for potential distinguishing values such as versions, etc. where a common artifact identifier (such as 'win2022') is used for every build and some other distinguishing value should be appended for uniquiness. If an empty string ("") is passed, then this will be ignored.
+`fileSuffix` is an optional placeholder for potential distinguishing values such as versions, etc. where a common artifact identifier (such as 'win2022') is used for every build and some other distinguishing value should be appended for uniquiness with "-" as the separator ('win2022-1.1.1.iso'). If an empty string ("") is passed, then this will be ignored.
 
 #### Inputs
 | Name          | Description                                                           | Type    | Required |
@@ -131,7 +132,7 @@ The target filename will match the source file as it exists in the source direct
 | sourcePath  | Full file path where will be sourced from; **Needs proper escape chars  | string  | TRUE     |
 | targetPath  | Target repo and folder destination of the artifact                      | string  | TRUE     |
 | fileSuffix  | Placeholder for distinguishing values like dates, versions, etc         | string  | *FALSE   |
-                *If not using a file suffix, "" (empty string) should be passed
+                *If not using a file suffix, an empty string ("") should be passed
 
 #### Outputs
 | Name    | Description                                                       | Type     |
