@@ -69,3 +69,87 @@ Depending how artifacts are named (for ex: myfile-1.0.0.iso, myfile-1.1.1.iso, m
 | Name       | Description                                        | Type       |
 |------------|----------------------------------------------------|------------|
 | foundPaths | List of path(s) that contain target artiface name  | []string   |
+
+
+## GetDownloadUri
+Requires full path to the artifact, including artifact name with extension. This function gets the artifact details and will return the download URI used to retrieve (download) the artifact.
+
+#### Inputs
+| Name          | Description                                            | Type    | Required |
+|---------------|--------------------------------------------------------|---------|:--------:|
+| artifPath     | Full repo/folder path to the target artifact           | string  | TRUE     |
+| artifNameExt  | Full name of the artifact, including file extension    | string  | TRUE     |
+
+#### Outputs
+| Name        | Description                                        | Type     |
+|-------------|----------------------------------------------------|----------|
+| downloadUri | List of path(s) that contain target artiface name  | string   |
+| err         | nil unless error; then returns error               | error    |
+
+
+## GetCreateDate
+Requires full path to the artifact, including artifact name with extension. This function gets the artifact details and will return the string date `created`.
+
+#### Inputs
+| Name          | Description                                              | Type    | Required |
+|---------------|----------------------------------------------------------|---------|:--------:|
+| artifactUri   | URI of the artifact itself (different from Download URI) | string  | TRUE     |
+
+#### Outputs
+| Name        | Description                           | Type     |
+|-------------|---------------------------------------|----------|
+| createdDate | Date/time the artifact was created    | string   |
+| err         | nil unless error; then returns error  | error    |
+
+
+## RetrieveArtifact
+This function gets the artifact via the provided Download URI and copies it to the output directory specified in the environment variables file (.env). If no output directory path was provided, the artifact will be downloaded to the top-level directory of this code.
+
+#### Inputs
+| Name          | Description                                                   | Type    | Required |
+|---------------|---------------------------------------------------------------|---------|:--------:|
+| downloadUri   | URI of the artifact that allows the artifact to be downloaded | string  | TRUE     |
+
+#### Outputs
+| Name        | Description                                                 | Type     |
+|-------------|-------------------------------------------------------------|----------|
+| (msg) | String message indicating completion or failure of the download   | string   |
+| err         | nil unless error; then returns error                        | error    |
+
+
+## UploadFile
+Uploads artifact to specified target path. 
+`sourcePath` should be properly escaped and in the format of 'h:\\lab\\artifact.txt' or 
+/lab/artifact.txt. 
+`targetPath` should be in the format of '/repo-key/folder/path/'
+The target filename will match the source file as it exists in the source directory.
+`fileSuffix` is an optional placeholder for potential distinguishing values such as versions, etc. where a common artifact identifier (such as 'win2022') is used for every build and some other distinguishing value should be appended for uniquiness. If an empty string ("") is passed, then this will be ignored.
+
+#### Inputs
+| Name          | Description                                                           | Type    | Required |
+|---------------|-----------------------------------------------------------------------|---------|:--------:|
+| sourcePath  | Full file path where will be sourced from; **Needs proper escape chars  | string  | TRUE     |
+| targetPath  | Target repo and folder destination of the artifact                      | string  | TRUE     |
+| fileSuffix  | Placeholder for distinguishing values like dates, versions, etc         | string  | *FALSE   |
+                *If not using a file suffix, "" (empty string) should be passed
+
+#### Outputs
+| Name    | Description                                                       | Type     |
+|---------|-------------------------------------------------------------------|----------|
+| (msg)   | String message indicating completion or failure of the download   | string   |
+| err     | nil unless error; then returns error                              | error    |
+
+
+## DeleteArtifact
+Takes in an artifact's URI and executes a delete operation against it.
+
+#### Inputs
+| Name          | Description                                              | Type    | Required |
+|---------------|----------------------------------------------------------|---------|:--------:|
+| artifactUri   | URI of the artifact itself (different from Download URI) | string  | TRUE     |
+
+#### Outputs
+| Name        | Description                                                           | Type     |
+|-------------|-----------------------------------------------------------------------|----------|
+| statusCode  | Resulting status code of the delete operation (either "204" or "404") | string   |
+| err         | nil unless error; then returns error                                  | error    |
