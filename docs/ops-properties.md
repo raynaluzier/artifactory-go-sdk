@@ -48,9 +48,9 @@ For example: If 3 property key/value pairs were input as filters, we would expec
 
 - If only one artifact is present in the foundList, we'll return this artifact.
 - If multiple artifacts are returned in the foundList, we will count the instances of each artifact in the list. 
-    -- If the number of duplicate artifacts found matches the number of input property key/value pairs, they will be added to the `filteredList`. 
-    -- If there's only one artifact in the filteredList, this will be returned. 
-    -- If multiple artifacts are still present in the filteredList, the created date for each artifact will be grabbed and the latest artifact will be returned.
+- If the number of duplicate artifacts found matches the number of input property key/value pairs, they will be added to the `filteredList`. 
+- If there's only one artifact in the filteredList, this will be returned. 
+- If multiple artifacts are still present in the filteredList, the created date for each artifact will be grabbed and the latest artifact will be returned.
 
 #### Inputs
 | Name          | Description                               | Type      | Required |
