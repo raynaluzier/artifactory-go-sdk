@@ -3,11 +3,13 @@ package common
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"regexp"
 	"strings"
 )
+
+var logLevel slog.Level
 
 func AuthCreds() (string, string) {
 	artifServer := os.Getenv("ARTIFSERVER")
@@ -61,6 +63,7 @@ func ReturnDuplicates(countMap map[string]int) []string {
 	return duplicates
 }
 
+/*
 func SetArtifUriFromDownloadUri(downloadUri string) string {
 	downloadUri = strings.Replace(downloadUri, "8082", "8081", 1)  // Modify the server port from 8082 to 8081
 	artifServer := os.Getenv("ARTIFSERVER")                        // http://server.com:8081/artifactory/api
@@ -69,7 +72,7 @@ func SetArtifUriFromDownloadUri(downloadUri string) string {
 	artifUri := artifServer + "/storage" + artifSuffix             // http://server.com:8081/artifactory/storage/repo-key/folder/path/artifact.ext
 	
 	return artifUri
-}
+}*/
 
 func SearchForExactString(searchTerm, inputStr string) (bool, error) {
 	// For example: "win2022" will return true if input string is "win2022", false if "win2022-iis"
@@ -96,7 +99,8 @@ func EscapeSpecialChars(input string) (string) {
 	if err != nil {
 		out, err := json.Marshal(input)
 		if err != nil {
-			log.Printf("json marshalling failed with error : %v", err)
+			strErr := fmt.Sprintf("%v\n", err)
+			LogTxtHandler().Error("JSON marshalling failed with an error. " + strErr)
 			return input
 		} else {
 			// JSON marshal quotes the entire string which results in double quotes at beginning/end of string
@@ -136,7 +140,7 @@ func CheckAddSlashToPath(path string) string {
 
 	if winPath == true {
 		if lastChar == "\\" {
-			fmt.Println("Path: '" + path + "' is formatted properly")
+			LogTxtHandler().Debug("Path: '" + path + "' is formatted properly")
 			return path
 		} else {
 			// Add backslash to path
@@ -145,7 +149,7 @@ func CheckAddSlashToPath(path string) string {
 		}
 	} else {  // Unix Path
 		if lastChar == "/" {
-			fmt.Println("Path: '" + path + "' is formatted properly")
+			LogTxtHandler().Debug("Path: '" + path + "' is formatted properly")
 			return path
 		} else {
 			// Add forwardslash to path
@@ -165,4 +169,42 @@ func ContainsSpecialChars(strings []string) bool {
 		}
 	}
 	return false
+}
+
+func SetLoggingLevel() slog.Level {
+	level := os.Getenv("LOGGING")
+
+	switch level {
+	case "INFO":
+		logLevel = slog.LevelInfo
+	case "WARN":
+		logLevel = slog.LevelWarn
+	case "ERROR":
+		logLevel = slog.LevelError
+	case "DEBUG":
+		logLevel = slog.LevelDebug
+	default:
+		logLevel = slog.LevelInfo
+	}
+	return logLevel
+}
+
+func LogTxtHandler() *slog.Logger {
+	loggingLevel := SetLoggingLevel()
+	opts := &slog.HandlerOptions{
+		Level: slog.Level(loggingLevel),
+	}
+	handler := slog.NewTextHandler(os.Stdout, opts)
+	txtLogger := slog.New(handler)
+	return txtLogger
+}
+
+func LogJsonHandler() *slog.Logger {
+	loggingLevel := SetLoggingLevel()
+	opts := &slog.HandlerOptions{
+		Level: slog.Level(loggingLevel),
+	}
+	handler := slog.NewJSONHandler(os.Stdout, opts)
+	jsonLogger := slog.New(handler)
+	return jsonLogger
 }

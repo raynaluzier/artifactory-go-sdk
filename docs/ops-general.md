@@ -92,9 +92,9 @@ Requires full path to the artifact, including artifact name with extension. This
 Requires full path to the artifact, including artifact name with extension. This function gets the artifact details and will return the string date `created`.
 
 #### Inputs
-| Name          | Description                                              | Type    | Required |
-|---------------|----------------------------------------------------------|---------|:--------:|
-| artifactUri   | URI of the artifact itself (different from Download URI) | string  | TRUE     |
+| Name       | Description                                              | Type    | Required |
+|------------|----------------------------------------------------------|---------|:--------:|
+| artifUri   | URI of the artifact itself (different from Download URI) | string  | TRUE     |
 
 #### Outputs
 | Name        | Description                           | Type     |

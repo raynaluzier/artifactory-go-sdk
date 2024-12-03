@@ -203,3 +203,69 @@ Checks for the special characters that are disallowed by Artifactory in Properti
 | Name       | Description                                                    | Type |
 |------------|----------------------------------------------------------------|------|
 | ture/false | Returns true if any of the strings contains special characters | bool |
+
+
+## SetLoggingLevel
+Uses a `.env` file to capture the desired logging level and returns the slog.Level equivalent value to be used by the desired logging handlers (LogTxtHandler or LogJsonHandler). If not specified, logging level defaults to INFO.
+
+#### Inputs
+| Name        | Description                                             | Type     | Required |
+|-------------|---------------------------------------------------------|----------|:--------:|
+| LOGGING     | Desired log level; Accepts: INFO, WARN, ERROR, DEBUG    | string   | FALSE    |
+
+#### Outputs
+| Name      | Description                                                                                | Type       |
+|-----------|--------------------------------------------------------------------------------------------|------------|
+| logLevel  | Will be slog.LevelInfo, slog.LevelWarn, slog.LevelError, or slog.LevelDebug based on input | slog.Level |
+
+
+## LogTxtHandler
+Takes in the appropriate logging level type from `SetLoggingLevel()` and sets the level in the handler options. Then a new Text handler interface is created with the specified logging format and defines where they are written to, in this case, Stdout.
+
+Output example:  `time=2024-12-02T10:35:41.267-07:00 level=INFO msg="This is your info message."`
+
+#### Inputs
+| Name        | Description                                             | Type     | Required |
+|-------------|---------------------------------------------------------|----------|:--------:|
+| LOGGING     | Desired log level; Accepts: INFO, WARN, ERROR, DEBUG    | string   | FALSE    |
+
+#### Outputs
+| Name      | Description                                                                                | Type       |
+|-----------|--------------------------------------------------------------------------------------------|------------|
+| logLevel  | Will be slog.LevelInfo, slog.LevelWarn, slog.LevelError, or slog.LevelDebug based on input | slog.Level |
+
+#### Usage
+Example: `someLogLevel := common.SetLoggingLevel()`
+         `common.LogTxtHandler(someLogLevel).Info("Info stuff. All is well!")`
+         `common.LogTxthandler(someLogLevel).Debug("Found object: test-artifact.txt")`
+
+If 'INFO' is set in .env, then only the .Info, .Warn, and .Error logs will be output.
+If 'WARN' is set, then only .Warn, and .Error logs will be output.
+If 'ERROR' is set, then only .Error logs will be output.
+If 'DEBUG' is set, then all logs - .Info, .Warn, .Error, and .Debug - will be output.
+
+
+## LogJsonHandler
+Takes in the appropriate logging level type from `SetLoggingLevel()` and sets the level in the handler options. Then a new JSON handler interface is created with the specified logging format and defines where they are written to, in this case, Stdout. The JSON handler is useful for parsing and performing other actions based on the output, or writing to an external logging system.
+
+Output example:  `{"time":"2024-12-02T10:13:31.252815-07:00","level":"INFO","msg":"Some JSON Info message."}`
+
+#### Inputs
+| Name        | Description                                             | Type     | Required |
+|-------------|---------------------------------------------------------|----------|:--------:|
+| LOGGING     | Desired log level; Accepts: INFO, WARN, ERROR, DEBUG    | string   | FALSE    |
+
+#### Outputs
+| Name      | Description                                                                                | Type       |
+|-----------|--------------------------------------------------------------------------------------------|------------|
+| logLevel  | Will be slog.LevelInfo, slog.LevelWarn, slog.LevelError, or slog.LevelDebug based on input | slog.Level |
+
+#### Usage
+Example: `someLogLevel := common.SetLoggingLevel()`
+         `common.LogJsonHandler(someLogLevel).Info("Info stuff. All is well!")`
+         `common.LogJsonhandler(someLogLevel).Debug("Found object: test-artifact.txt")`
+
+If 'INFO' is set in .env, then only the .Info, .Warn, and .Error logs will be output.
+If 'WARN' is set, then only .Warn, and .Error logs will be output.
+If 'ERROR' is set, then only .Error logs will be output.
+If 'DEBUG' is set, then all logs - .Info, .Warn, .Error, and .Debug - will be output.
