@@ -194,6 +194,7 @@ func GetCreateDate(artifUri string) (string, error) {
 }
 
 func GetArtifactNameFromUri(artifUri string) (string) {
+	// Parses artifact name from artifact's URI
 	common.LogTxtHandler().Info(">>> Getting Artifact Name from URI...")
 	fileName := path.Base(artifUri)
 	ext := filepath.Ext(fileName)

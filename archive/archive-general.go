@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 
@@ -50,6 +49,7 @@ func GetItemChildren(item string) ([]Contents, error) {
 	// Item can represent a repo name or a combo of repo/child_folder/subchild_folder/etc
 	artifBase, bearer := common.AuthCreds()
 	requestPath := artifBase + "/storage/" + item
+	common.LogTxtHandler().Info(">>> Getting Item Children for Item" + item + "...")
 
 	type itemResults struct {
 		Repo			string		`json:"repo"`
@@ -69,45 +69,55 @@ func GetItemChildren(item string) ([]Contents, error) {
 	var childDetails []Contents
 
 	if (item != "") {
+		common.LogTxtHandler().Debug("REQUEST: Sending 'GET' request to: " + requestPath)
 		request, err = http.NewRequest("GET", requestPath, nil)
 		request.Header.Add("Authorization", bearer)
 
 		client := &http.Client{}
 		response, err := client.Do(request)
 		if err != nil {
-			log.Println("Error on response.\n[ERROR] - ", err)
-		}
-		defer response.Body.Close()
-		body, err := io.ReadAll(response.Body)
-		//fmt.Println(string(body))
-
-		var jsonData *itemResults
-		err = json.Unmarshal(body, &jsonData)
-		if err != nil {
-			fmt.Printf("Could not unmarshal %s\n", err)
-		}
-
-		// If the item has children, parse the data and return the abbreviated
-		// URI ('/folder', '/folder/artifact.ext', etc) and whether the child item is a folder or not (bool)
-		if len(jsonData.Children) != 0 {
-			for idx, c := range jsonData.Children {
-				c = jsonData.Children[idx]
-				childDetails = append(childDetails, Contents{Child: c.Uri, IsFolder: c.Folder})
-			}
-			return childDetails, nil
+			strErr := fmt.Sprintf("%v\n", err)
+			common.LogTxtHandler().Error("Error on response. " + strErr)
+			return nil, err
 		} else {
-			// If no children found, we return empty contents; this isn't an error condition
-			fmt.Println("No child objects found for " + item)
-			return childDetails, nil
-		}
+			defer response.Body.Close()
+			body, err := io.ReadAll(response.Body)
+			common.LogTxtHandler().Debug("REQUEST RESPONSE: " + string(body))
 
-		/*
-		for idx := 0; idx < len(childDetails); idx++ {
-			fmt.Println(childDetails[idx].Child, childDetails[idx].IsFolder)
-		}*/
-		// ex: [{/test-artifact-1.1.txt false} {/test-artifact-1.2.txt false} {/test-artifact-1.3.txt false}] <nil>
+			var jsonData *itemResults
+			err = json.Unmarshal(body, &jsonData)
+			if err != nil {
+				strErr := fmt.Sprintf("%v\n", err)
+				common.LogTxtHandler().Error("Could not unmarshal response - " + strErr)
+			}
+
+			// If the item has children, parse the data and return the abbreviated
+			// URI ('/folder', '/folder/artifact.ext', etc) and whether the child item is a folder or not (bool)
+			if len(jsonData.Children) != 0 {
+				common.LogTxtHandler().Debug("CHILD OBJECTS FOUND FOR: " + item)
+				for idx, c := range jsonData.Children {
+					c = jsonData.Children[idx]
+					childDetails = append(childDetails, Contents{Child: c.Uri, IsFolder: c.Folder})
+
+					strIsFolder := fmt.Sprintf("%v\n", c.Folder)
+					common.LogTxtHandler().Debug("CHILD: " + c.Uri + " - IS FOLDER: " + strIsFolder)
+				}
+				return childDetails, nil
+			} else {
+				// If no children found, we return empty contents; this isn't an error condition
+				common.LogTxtHandler().Warn("No child objects found for " + item)
+				return childDetails, nil
+			}
+
+			/*
+			for idx := 0; idx < len(childDetails); idx++ {
+				fmt.Println(childDetails[idx].Child, childDetails[idx].IsFolder)
+			}*/
+			// ex: [{/test-artifact-1.1.txt false} {/test-artifact-1.2.txt false} {/test-artifact-1.3.txt false}] <nil>
+			}
 	} else {
 		err := errors.New("No item or path provided. Unable to get child items without parent item/path.")
+		common.LogTxtHandler().Error("No item or path provided. Unable to get child items without parent item/path.")
 		return nil, err
 	}
 }
@@ -118,11 +128,13 @@ func GetArtifactPath(artifName string) ([]string, error) {
 	var childList []Contents
 	var listOfPaths []string
 	foundPaths = nil
+	common.LogTxtHandler().Info(">>> Getting Artifact Path for Artifact " + artifName + "...")
 
 	if artifName != "" {
 		listRepos, err := operations.ListRepos()
 		if err != nil || listRepos[0] == "" || len(listRepos) == 0 {
-			err := errors.New("No repos found")
+			err := errors.New("No repos found.")
+			common.LogTxtHandler().Warn("No repos found.")
 			return nil, err
 		}
 
@@ -136,23 +148,27 @@ func GetArtifactPath(artifName string) ([]string, error) {
 
 			if len(listOfPaths) > 1 {
 				// We'll search the list for duplicates and remove them
+				common.LogTxtHandler().Info("Removing duplicate paths...")
 				listOfPaths = common.RemoveDuplicateStrings(listOfPaths)
 				if len(listOfPaths) > 1 {
-					fmt.Println("More than one possible artifact path found")
+					common.LogTxtHandler().Info("More than one possible artifact path found.")
 				}
 				return listOfPaths, nil
 			} else if len(listOfPaths) == 1 && listOfPaths[0] != "" {
 				return listOfPaths, nil
 			} else if len(listOfPaths) == 0 || listOfPaths[0] == "" {
-				err := errors.New("Unable to find path to artifact")
+				err := errors.New("Unable to find path to artifact.")
+				common.LogTxtHandler().Error("Unable to find path to artifact.")
 				return nil, err
 			}
 		} else {
 			err := errors.New("List of repos to check is empty. Either there are no repos or you do not have sufficient permissions to the repo(s).")
+			common.LogTxtHandler().Error("List of repos to check is empty. Either there are no repos or you do not have sufficient permissions to the repo(s).")
 			return nil, err
 		}
 	} else {
-		err := errors.New("Unable to determine path to artifact without the artifact name")
+		err := errors.New("Unable to determine path to artifact without the artifact name.")
+		common.LogTxtHandler().Error("Unable to determine path to artifact without the artifact name.")
 		return nil, err
 	}
 
@@ -175,10 +191,13 @@ func RecursiveSearch(list []Contents, artifName, searchPath string, foundPaths [
 
 				if strings.Contains(list[item].Child, artifName) {      // If we don't find it initially, we'll check with cases converted
 					foundPaths = append(foundPaths, searchPath)         // If found, item's path appended to found list
+					common.LogTxtHandler().Debug("Found possible path: " + searchPath)
 				} else if strings.Contains(list[item].Child, lowStr) {
 					foundPaths = append(foundPaths, searchPath)
+					common.LogTxtHandler().Debug("Found possible path: " + searchPath)
 				} else if strings.Contains(list[item].Child, upStr) {
 					foundPaths = append(foundPaths, searchPath)
+					common.LogTxtHandler().Debug("Found possible path: " + searchPath)
 				}
 			} else {  // IsFolder == true; so we get its children and repeat the search
 				searchPath = currentPath + list[item].Child		   // 1st "/repo" + "/folder", 2nd "/repo/folder" + "/folder", etc

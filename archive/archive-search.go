@@ -74,9 +74,9 @@ func GetArtifactsByNameRepo(artifName, repo string) ([]string, error) {
 func GetArtifactVersions(groupId, artifName, repo string) ([]string, error) {
 	// Requires at least the Group ID (top level folder, must be FULL name) and Artifact Name (must be FULL name); optionally repo
 	// Only available if folder structure was setup with a Layout (artifacts will have a value for Module ID present)
-	// Searches and returns list of versions for artifacts matching search terms
+	// Search function returns list of versions for artifacts matching search terms
 	// This search only takes in the info for a single artifact
-    // Search is CASE SENSITIVE
+    // Search terms are CASE SENSITIVE
 	listVersions := []string{}
 	artifBase, bearer := common.AuthCreds()
 	requestPath := artifBase + "/search/versions?g=" + groupId + "&a=" + artifName
