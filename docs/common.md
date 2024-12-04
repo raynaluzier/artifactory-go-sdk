@@ -18,6 +18,18 @@ Uses a `.env` file to capture the target Artifactory server and Artifactory acco
 | bearer      | Forms bearer token to be passed with REST API Call to Artifactory                        | string   |
 
 
+## CheckOsPlatform
+Detects the operating system this program is running on and will return `windows`, `linux`, or `darwin` (MAC).
+
+#### Inputs
+Takes no inputs.
+
+#### Outputs
+| Name   | Description              | Type     |
+|--------|--------------------------|----------|
+| os     | Resulting OS platform    | string   |
+
+
 ## ConvertToLowercase
 Converts input string to lowercase and returns converted value.
 

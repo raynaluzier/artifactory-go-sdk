@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"regexp"
+	"runtime"
 	"strings"
 )
 
@@ -16,6 +17,12 @@ func AuthCreds() (string, string) {
 	token := os.Getenv("TOKEN")
 	bearer := "Bearer " + token
 	return artifServer, bearer
+}
+
+func CheckOsPlatform() string {
+	// Detects the operating system this program is running on
+	os := runtime.GOOS
+	return os
 }
 
 func ConvertToLowercase(inputStr string) string {
