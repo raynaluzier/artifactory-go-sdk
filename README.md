@@ -16,7 +16,12 @@ To run functions from this module, the following pre-requisites must be met:
 
 5. Ensure the `GOPATH` (the local directory to where the Go app is installed) is configured, as well as the environment variable to the path of the Go binary (on Windows, this would typically be `C:\Program Files\Go\bin`, for example)
 
-6. Configure the .env file with the Artifactory Identity Token and Artifactory server; the Output Directory is optional but helpful when downloading artifacts to ensure they're placed in the desired location. Alternatively, they will be placed in a folder under the root of this module.
+6. Configure the `.env` file with the Artifactory Identity Token and Artifactory server; the Output Directory is optional but helpful when downloading artifacts to ensure they're placed in the desired location. Alternatively, they will be placed in a folder under the root of this module. Logging provides an option to change the level of logging to display.
+
+    * `TOKEN` - Artifactory Identity Token --> Ex:  TOKEN=1234567890abcdefghijklmnopqrstuv
+    * `ARTIFSERVER` - Artifactory Server --> Ex:  ARTIFSERVER=https://server.com:8081/artifactory/api
+    * `OUTPUTDIR` - Output directory for downloading artifacts --> Ex: OUTPUTDIR=H:\output-dir\path\ or /output-dir/path/; if not set, will use top level of this module
+    * `LOGGING` - Logging level (INFO, WARN, ERROR, DEBUG); defaults to 'INFO' --> Ex:  LOGGING=DEBUG
 
 ## About
 This module is broken into several packages: `common`, `operations`, and `search` based on the underlying behavior of the functions. Some functions are specifically related to certain behaviors so they have been grouped together into packages as described below. 
@@ -50,3 +55,6 @@ A reference outline of each function's behavior and any special notes can be fou
 
 - [Search](https://github.com/raynaluzier/go-artifactory/blob/main/docs/search.md)
 
+## How to Use
+
+## Unit Testing
