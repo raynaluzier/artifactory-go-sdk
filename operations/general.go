@@ -210,16 +210,20 @@ func RetrieveArtifact(downloadUri string) (string, error) {
 	_, bearer := common.AuthCreds()
 
 	common.LogTxtHandler().Info(">>> Retrieving Artifact by Download URI: " + downloadUri + "...")
-	// If no output directory path was provided, the artifact file will be downloaded to the top-level
-	// directory of this code
+	// If no output directory path was provided, the artifact file will be downloaded to the user's HOME directory
 	if len(os.Getenv("OUTPUTDIR")) != 0 {
 		OUTPUTDIR := os.Getenv("OUTPUTDIR")
 		outputDir = common.EscapeSpecialChars(OUTPUTDIR)  // Ensure special characters are escaped
 		outputDir = common.CheckAddSlashToPath(outputDir) // Ensure path ends with appropriate slash type
 	} else {  // There's no OUTPUTDIR env var...
-		common.LogTxtHandler().Warn("*** No output directory provided; output will be at top-level directory")
-		common.LogTxtHandler().Warn("*** To set an output directory, add 'OUTPUTDIR=<target_directory>' to the .env file.")
-		outputDir = ""
+		common.LogTxtHandler().Warn("*** No output directory provided; output will be user's home directory.")
+		outputDir, err = os.UserHomeDir()
+		if err != nil {
+			common.LogTxtHandler().Error("Unable to get user's home directory.")
+		} else {
+			common.LogTxtHandler().Debug("User's home directory is: " + outputDir)
+			outputDir = common.CheckAddSlashToPath(outputDir)
+		}
 	}
 
 	if downloadUri != "" {

@@ -58,7 +58,7 @@ Requires full path to the artifact, including artifact name with extension. This
 
 
 ## RetrieveArtifact
-This function gets the artifact via the provided Download URI and copies it to the output directory specified in the environment variables file (.env). If no output directory path was provided, the artifact will be downloaded to the top-level directory of this code.
+This function gets the artifact via the provided Download URI and copies it to the output directory specified in the environment variables file (.env). If no output directory path was provided, the artifact will be downloaded to the user's HOME directory.
 
 #### Inputs
 | Name          | Description                                                   | Type    | Required |
