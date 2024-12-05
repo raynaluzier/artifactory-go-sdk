@@ -61,9 +61,10 @@ Requires full path to the artifact, including artifact name with extension. This
 This function gets the artifact via the provided Download URI and copies it to the output directory specified in the environment variables file (.env). If no output directory path was provided, the artifact will be downloaded to the user's HOME directory.
 
 #### Inputs
-| Name          | Description                                                   | Type    | Required |
-|---------------|---------------------------------------------------------------|---------|:--------:|
-| downloadUri   | URI of the artifact that allows the artifact to be downloaded | string  | TRUE     |
+| Name                  | Description                                                   | Type    | Required |
+|-----------------------|---------------------------------------------------------------|---------|:--------:|
+| downloadUri           | URI of the artifact that allows the artifact to be downloaded | string  | TRUE     |
+| ARTIFACTORY_OUTPUTDIR | Output directory where artifact downloads will be stored      | string  | FALSE    |
 
 #### Outputs
 | Name     | Description                                                       | Type     |

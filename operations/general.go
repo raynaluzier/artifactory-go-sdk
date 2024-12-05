@@ -211,8 +211,8 @@ func RetrieveArtifact(downloadUri string) (string, error) {
 
 	common.LogTxtHandler().Info(">>> Retrieving Artifact by Download URI: " + downloadUri + "...")
 	// If no output directory path was provided, the artifact file will be downloaded to the user's HOME directory
-	if len(os.Getenv("OUTPUTDIR")) != 0 {
-		OUTPUTDIR := os.Getenv("OUTPUTDIR")
+	if len(os.Getenv("ARTIFACTORY_OUTPUTDIR")) != 0 {
+		OUTPUTDIR := os.Getenv("ARTIFACTORY_OUTPUTDIR")
 		outputDir = common.EscapeSpecialChars(OUTPUTDIR)  // Ensure special characters are escaped
 		outputDir = common.CheckAddSlashToPath(outputDir) // Ensure path ends with appropriate slash type
 	} else {  // There's no OUTPUTDIR env var...

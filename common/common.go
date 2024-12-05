@@ -13,8 +13,8 @@ import (
 var logLevel slog.Level
 
 func AuthCreds() (string, string) {
-	artifServer := os.Getenv("ARTIFSERVER")
-	token := os.Getenv("TOKEN")
+	artifServer := os.Getenv("ARTIFACTORY_SERVER")
+	token := os.Getenv("ARTIFACTORY_TOKEN")
 	bearer := "Bearer " + token
 	return artifServer, bearer
 }
@@ -72,7 +72,7 @@ func ReturnDuplicates(countMap map[string]int) []string {
 
 func SetArtifUriFromDownloadUri(downloadUri string) string {
 	downloadUri = strings.Replace(downloadUri, "8082", "8081", 1)  // Modify the server port from 8082 to 8081
-	artifServer := os.Getenv("ARTIFSERVER")                        // http://server.com:8081/artifactory/api
+	artifServer := os.Getenv("ARTIFACTORY_SERVER")                 // http://server.com:8081/artifactory/api
 	artifSuffix := strings.TrimPrefix(downloadUri, artifServer)    // /repo-key/folder/path/artifact.ext
 	artifUri := artifServer + "/storage" + artifSuffix             // http://server.com:8081/artifactory/api/storage/repo-key/folder/path/artifact.ext
 	
@@ -177,7 +177,7 @@ func ContainsSpecialChars(strings []string) bool {
 }
 
 func SetLoggingLevel() slog.Level {
-	level := os.Getenv("LOGGING")
+	level := os.Getenv("ARTIFACTORY_LOGGING")
 
 	switch level {
 	case "INFO":
