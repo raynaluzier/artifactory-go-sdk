@@ -10,6 +10,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/raynaluzier/go-artifactory/common"
@@ -460,4 +461,31 @@ func DeleteArtifact(artifUri string) (string, error) {
 		return "", err
 	}
 	return statusCode, nil
+}
+
+func GetLatestArtifactFromList(list []string) (string, error) {
+    var latestItem string
+    var dateMap []map[string]string
+
+    for item := 0; item < len(list); item++ {
+        addMap := make(map[string]string)
+        created, err := GetCreateDate(list[item])
+        if err != nil {
+            common.LogTxtHandler().Error("Error getting created date.")
+        }
+
+        common.LogTxtHandler().Info("CREATED DATE RETRIEVED:" + created)
+        addMap["artifact"] = list[item]
+        addMap["created"] = created
+        dateMap = append(dateMap, addMap)
+    }
+
+    sort.Slice(dateMap, func(i, j int) bool {
+        return dateMap[i]["created"] < dateMap[j]["created"]
+    })
+
+    latest := len(dateMap) - 1
+    latestItem = dateMap[latest]["artifact"]
+    common.LogTxtHandler().Info("LATEST ITEM: " + latestItem)
+    return latestItem, nil
 }

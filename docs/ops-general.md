@@ -109,3 +109,18 @@ Takes in an artifact's URI and executes a delete operation against it.
 |-------------|-----------------------------------------------------------------------|----------|
 | statusCode  | Resulting status code of the delete operation (either "204" or "404") | string   |
 | err         | nil unless error; then returns error                                  | error    |
+
+
+## GetLatestArtifactFromList
+Takes in list of artifact URIs, gets the created date for each of them, and returns the latest artifact.
+
+#### Inputs
+| Name   | Description              | Type      | Required |
+|--------|--------------------------|-----------|:--------:|
+| list   | List of artifact URIs    | []string  | TRUE     |
+
+#### Outputs
+| Name        | Description                           | Type     |
+|-------------|---------------------------------------|----------|
+| latestItem  | Artifact with latest 'create' date    | string   |
+| err         | nil unless error; then returns error  | error    |

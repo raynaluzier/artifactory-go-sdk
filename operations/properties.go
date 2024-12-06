@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"sort"
 	"strings"
 
 	"github.com/raynaluzier/go-artifactory/common"
@@ -183,7 +182,6 @@ func FilterListByProps(listArtifUris, listKvProps []string) (string, error) {
 	var filteredList []string
 	var structData []map[string]interface{}
 	numProps := len(listKvProps)
-	var dateMap []map[string]string
 	var foundItem string
 
 	common.LogTxtHandler().Info(">>> Filtering Artifact URIs by Property Keys/Values...")
@@ -251,25 +249,10 @@ func FilterListByProps(listArtifUris, listKvProps []string) (string, error) {
 				common.LogTxtHandler().Warn("More than one artifact with matching properties was found.")
 				common.LogTxtHandler().Warn("Getting latest artifact...")
 
-				for i := 0; i < len(filteredList); i++ {
-					addMap := make(map[string]string)
-					created, err := GetCreateDate(filteredList[i])
-					if err != nil {
-						common.LogTxtHandler().Error("Error getting created date.")
-					}
-					common.LogTxtHandler().Debug("CREATED DATE RETRIEVED:" + created)
-
-					addMap["artifact"] = filteredList[i]
-					addMap["created"] = created
-					dateMap = append(dateMap, addMap)
+				foundItem, err = GetLatestArtifactFromList(filteredList)
+				if err != nil {
+					common.LogTxtHandler().Error("Error getting latest created date.")
 				}
-				// Sort by 'created' date and return the latest instance of the artifact
-				sort.Slice(dateMap, func(i, j int) bool { 
-					return dateMap[i]["created"] < dateMap[j]["created"]
-				})
-				latest := len(dateMap) - 1
-				foundItem = dateMap[latest]["artifact"]
-				common.LogTxtHandler().Info("LATEST MATCHING ARTIFACT: " + foundItem)
 				return foundItem, nil
 			}
 		} else if len(foundList) == 1 {
