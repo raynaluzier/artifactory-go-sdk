@@ -10,34 +10,28 @@ import (
 	"strings"
 
 	"github.com/raynaluzier/go-artifactory/common"
+	"github.com/raynaluzier/go-artifactory/util"
 )
 
 var request *http.Request
 var err error
 
 func GetArtifactsByProps(listKvProps []string) ([]string, error) {
-	// Searches for an artifact by one or more property names and optionally values if provided (e.g. release or release=stable)
-	// Search will return all artifacts that meet the search criteria
-	// Multiple properties with no values should be separated by a '&' (ex: "release&channel")
-	// Multiple prop keys and values should also be separated by a '&'; prop keys/values should be in format of "propKey=value"
-	// (ex: "release=stable&channel=windows-prod")
+	// Takes in list of property key/values strings (ex: 'release=latest-stable', 'testing=passed')
 	var strKvProps string
 	listArtifUris := []string{}
-	artifBase, bearer := common.AuthCreds()
-	requestPath := artifBase + "/search/prop?"
+	bearer := common.SetBearer(util.Token)
+	requestPath := util.ServerApi + "/search/prop?"
 
 	common.LogTxtHandler().Info(">>> Getting Artifacts by Property Names/Values...")
 
-	// Assuming prop(s) or prop key(s)/value(s) coming over in a list of strings, like {"release=stable", "channel=windows-lab"}; 
-	// or, {"release", "channel"}
 	if len(listKvProps) != 0 {
-		// Determines whether we will format a list of properties/values first, or passing a single property/value 
-		// before making the API call
-		if len(listKvProps) > 1{
+		if len(listKvProps) > 1 {
 			// If there's more than one prop name/value supplied, adds the required '&' separater between them
 			strKvProps = strings.Join(listKvProps, "&")
 			request, err = http.NewRequest("GET", requestPath + strKvProps, nil)
 			common.LogTxtHandler().Debug("REQUEST: Sending 'GET' request to: " + requestPath + strKvProps)
+
 		} else {
 			request, err = http.NewRequest("GET", requestPath + listKvProps[0], nil)
 			common.LogTxtHandler().Debug("REQUEST: Sending 'GET' request to: " + requestPath + listKvProps[0])
@@ -50,6 +44,7 @@ func GetArtifactsByProps(listKvProps []string) ([]string, error) {
 		if err != nil {
 			strErr := fmt.Sprintf("%v\n", err)
 			common.LogTxtHandler().Error("Error on API response from 'GET' " + requestPath + " - " + strErr)
+
 		} else {
 			defer response.Body.Close()
 			body, err := io.ReadAll(response.Body)
@@ -104,8 +99,8 @@ func GetArtifactsByProps(listKvProps []string) ([]string, error) {
 func GetArtifactsByName(artifName string) ([]string, error) {
 	// Searches for artifacts by artifact name (can be partial)
 	listArtifUris := []string{}
-	artifBase, bearer := common.AuthCreds()
-	requestPath := artifBase + "/search/artifact?name=" + artifName
+	bearer := common.SetBearer(util.Token)
+	requestPath := util.ServerApi + "/search/artifact?name=" + artifName
 
 	common.LogTxtHandler().Info(">>> Getting Artifacts by Name...")
 
@@ -120,6 +115,7 @@ func GetArtifactsByName(artifName string) ([]string, error) {
 			strErr := fmt.Sprintf("%v\n", err)
 			common.LogTxtHandler().Error("Error on response. " + strErr)
 			return nil, err
+			
 		} else {
 			defer response.Body.Close()
 			body, err := io.ReadAll(response.Body)

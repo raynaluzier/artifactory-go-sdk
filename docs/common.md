@@ -1,20 +1,16 @@
 # Common Functions
 
-## AuthCreds
-Uses a `.env` file to capture the target Artifactory server and Artifactory account Identity Token, and then returns the variable for the Artifactory server and bearer token to be used in subsequent REST API calls.
+## SetBearer
+Takes in the Artifactory account Identity Token and forms the bearer token to be used in subsequent REST API calls.
 
 #### Inputs
-| Name                   | Description                                                                              | Type     | Required |
-|------------------------|------------------------------------------------------------------------------------------|----------|:--------:|
-| ARTIFACTORY_TOKEN      | Identity Token for the Artifactory account executing the function calls                  | string   | TRUE     |
-| ARTIFACTORY_SERVER     | URL to the target Artifactory server; format: `server.com:8081/artifactory/api`          | string   | TRUE     |
-| ARTIFACTORY_OUTPUTDIR  | Desired directory to output file/artifact to, such as in `RetrieveArtifact` operations   | string   | FALSE    |
-|                        | * If not specified, file will be dropped at the top-level directory of this module       |          |          |
+| Name       | Description                                                                              | Type     | Required |
+|------------|------------------------------------------------------------------------------------------|----------|:--------:|
+| token      | Identity Token for the Artifactory account executing the function calls                  | string   | TRUE     |
 
 #### Outputs
 | Name        | Description                                                                              | Type     |
 |-------------|------------------------------------------------------------------------------------------|----------|
-| artifServer | URL to the target Artifactory server; format: `server.com:8081/artifactory/api`          | string   |
 | bearer      | Forms bearer token to be passed with REST API Call to Artifactory                        | string   |
 
 
@@ -218,12 +214,10 @@ Checks for the special characters that are disallowed by Artifactory in Properti
 
 
 ## SetLoggingLevel
-Uses a `.env` file to capture the desired logging level and returns the slog.Level equivalent value to be used by the desired logging handlers (LogTxtHandler or LogJsonHandler). If not specified, logging level defaults to INFO.
+Uses the Global Variable `util.Logging` to set the desired logging level and returns the slog.Level equivalent value to be used by the desired logging handlers (LogTxtHandler or LogJsonHandler). If not specified, logging level defaults to INFO.
 
 #### Inputs
-| Name                 | Description                                             | Type     | Required |
-|----------------------|---------------------------------------------------------|----------|:--------:|
-| ARTIFACTORY_LOGGING  | Desired log level; Accepts: INFO, WARN, ERROR, DEBUG    | string   | FALSE    |
+Takes no inputs
 
 #### Outputs
 | Name      | Description                                                                                | Type       |

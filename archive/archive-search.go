@@ -9,13 +9,14 @@ import (
 	"net/http"
 
 	"github.com/raynaluzier/go-artifactory/common"
+	"github.com/raynaluzier/go-artifactory/util"
 )
 
 func GetArtifactsByNameRepo(artifName, repo string) ([]string, error) {
 	// Searches for artifacts by artifact name (can be partial) and optionally Artifactory repo (can be partial)
 	listArtifUris := []string{}
-	artifBase, bearer := common.AuthCreds()
-	requestPath := artifBase + "/search/artifact?name=" + artifName
+	bearer := common.SetBearer(util.Token)
+	requestPath := util.ServerApi + "/search/artifact?name=" + artifName
 
 	if artifName != "" && repo != "" {
 		// Determines whether a repo was also supplied and if so, includes it in the API call
@@ -74,12 +75,10 @@ func GetArtifactsByNameRepo(artifName, repo string) ([]string, error) {
 func GetArtifactVersions(groupId, artifName, repo string) ([]string, error) {
 	// Requires at least the Group ID (top level folder, must be FULL name) and Artifact Name (must be FULL name); optionally repo
 	// Only available if folder structure was setup with a Layout (artifacts will have a value for Module ID present)
-	// Search function returns list of versions for artifacts matching search terms
-	// This search only takes in the info for a single artifact
     // Search terms are CASE SENSITIVE
 	listVersions := []string{}
-	artifBase, bearer := common.AuthCreds()
-	requestPath := artifBase + "/search/versions?g=" + groupId + "&a=" + artifName
+	bearer := common.SetBearer(util.Token)
+	requestPath := util.ServerApi + "/search/versions?g=" + groupId + "&a=" + artifName
 
 	// Ensures the group ID and artifact name fields are not empty; these are required for this search type
 	if (groupId != "") && (artifName != "") {
@@ -140,11 +139,10 @@ func GetArtifactVersions(groupId, artifName, repo string) ([]string, error) {
 func GetArtifactLatestVersion(groupId, artifName, repo string) (string, error) {
 	// Requires at least the Group ID (top level folder, must be FULL name) and Artifact Name (must be FULL name); optionally repo
 	// Only available if folder structure was setup with a Layout (artifacts will have a value for Module ID present)
-	// Searches and returns latest version of artifact matching search terms
 	// Search is CASE SENSITIVE
 	var latestVersion string
-	artifBase, bearer := common.AuthCreds()
-	requestPath := artifBase + "/search/latestVersion?g=" + groupId + "&a=" + artifName
+	bearer := common.SetBearer(util.Token)
+	requestPath := util.ServerApi + "/search/latestVersion?g=" + groupId + "&a=" + artifName
 
 	// Ensures the group ID and artifact name fields are not empty; these are required for this search type
 	if (groupId != "") && (artifName != "") {

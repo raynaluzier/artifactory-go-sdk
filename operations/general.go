@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/raynaluzier/go-artifactory/common"
+	"github.com/raynaluzier/go-artifactory/util"
 )
 
 type Contents struct {
@@ -52,8 +53,8 @@ var foundPaths []string
 
 func ListRepos() ([]string, error) {
 	var listRepos []string
-	artifBase, bearer := common.AuthCreds()
-	requestPath := artifBase + "/repositories"
+	bearer := common.SetBearer(util.Token)
+	requestPath := util.ServerApi + "/repositories"
 	
 	common.LogTxtHandler().Info(">>> Getting list of available repos...")
 	common.LogTxtHandler().Debug("REQUEST: Sending 'GET' request to: " + requestPath)
@@ -103,7 +104,7 @@ func ListRepos() ([]string, error) {
 }
 
 func GetDownloadUri(artifUri string) (string, error) {
-	_, bearer := common.AuthCreds()
+	bearer := common.SetBearer(util.Token)
 	var downloadUri string
 	common.LogTxtHandler().Info(">>> Getting Download URI from Artifact URI" + artifUri + "...")
 
@@ -149,7 +150,7 @@ func GetDownloadUri(artifUri string) (string, error) {
 }
 
 func GetCreateDate(artifUri string) (string, error) {
-	_, bearer := common.AuthCreds()
+	bearer := common.SetBearer(util.Token)
 	var createdDate string
 	common.LogTxtHandler().Info(">>> Getting Create Date for Artifact: " + artifUri + "...")
 
@@ -208,17 +209,18 @@ func RetrieveArtifact(downloadUri string) (string, error) {
 	// Gets the artifact via provided Download URI and copies it to the output directory specified in
 	// the environment variables file
 	var outputDir string
-	_, bearer := common.AuthCreds()
+	bearer := common.SetBearer(util.Token)
 
 	common.LogTxtHandler().Info(">>> Retrieving Artifact by Download URI: " + downloadUri + "...")
 	// If no output directory path was provided, the artifact file will be downloaded to the user's HOME directory
-	if len(os.Getenv("ARTIFACTORY_OUTPUTDIR")) != 0 {
-		OUTPUTDIR := os.Getenv("ARTIFACTORY_OUTPUTDIR")
-		outputDir = common.EscapeSpecialChars(OUTPUTDIR)  // Ensure special characters are escaped
+	if len(util.OutputDir) != 0 {
+		outputDir = common.EscapeSpecialChars(util.OutputDir)  // Ensure special characters are escaped
 		outputDir = common.CheckAddSlashToPath(outputDir) // Ensure path ends with appropriate slash type
-	} else {  // There's no OUTPUTDIR env var...
+
+	} else {  // No output directory specified...
 		common.LogTxtHandler().Warn("*** No output directory provided; output will be user's home directory.")
 		outputDir, err = os.UserHomeDir()
+		
 		if err != nil {
 			common.LogTxtHandler().Error("Unable to get user's home directory.")
 		} else {
@@ -298,9 +300,9 @@ func UploadFile(sourcePath, targetPath, fileSuffix string) (string, error) {
 	var filePath string
 	var fileName string
 	var found bool
-	artifBase, bearer := common.AuthCreds()
+	bearer := common.SetBearer(util.Token)
 	separater := "-"										  // If adding a file suffix (like date, version, etc), use this separater between filename and suffix
-	trimmedBase := artifBase[:len(artifBase)-4]               // Removing '/api' from base URI
+	trimmedBase := util.ServerApi[:len(util.ServerApi)-4]               // Removing '/api' from base URI
 
 	common.LogTxtHandler().Info(">>> Uploading File From: " + sourcePath + "...")
 
@@ -422,7 +424,7 @@ func UploadFile(sourcePath, targetPath, fileSuffix string) (string, error) {
 }
 
 func DeleteArtifact(artifUri string) (string, error) {
-	_, bearer := common.AuthCreds()
+	bearer := common.SetBearer(util.Token)
 	common.LogTxtHandler().Info(">>> Deleting Artifact: " + artifUri + "...")
 
 	if artifUri != "" { 
@@ -464,28 +466,27 @@ func DeleteArtifact(artifUri string) (string, error) {
 }
 
 func GetLatestArtifactFromList(list []string) (string, error) {
-    var latestItem string
-    var dateMap []map[string]string
+	var latestItem string
+	var dateMap []map[string]string
 
-    for item := 0; item < len(list); item++ {
-        addMap := make(map[string]string)
-        created, err := GetCreateDate(list[item])
-        if err != nil {
-            common.LogTxtHandler().Error("Error getting created date.")
-        }
+	for item := 0; item < len(list); item++ {
+		addMap := make(map[string]string)
+		created, err := GetCreateDate(list[item])
+		if err != nil {
+			common.LogTxtHandler().Error("Error getting created date.")
+		}
+		common.LogTxtHandler().Info("CREATED DATE RETRIEVED:" + created)
+		addMap["artifact"] = list[item]
+		addMap["created"] = created
+		dateMap = append(dateMap, addMap)
+	}
 
-        common.LogTxtHandler().Info("CREATED DATE RETRIEVED:" + created)
-        addMap["artifact"] = list[item]
-        addMap["created"] = created
-        dateMap = append(dateMap, addMap)
-    }
+	sort.Slice(dateMap, func(i, j int) bool {
+		return dateMap[i]["created"] < dateMap[j]["created"]
+	})
 
-    sort.Slice(dateMap, func(i, j int) bool {
-        return dateMap[i]["created"] < dateMap[j]["created"]
-    })
-
-    latest := len(dateMap) - 1
-    latestItem = dateMap[latest]["artifact"]
-    common.LogTxtHandler().Info("LATEST ITEM: " + latestItem)
-    return latestItem, nil
+	latest := len(dateMap) - 1
+	latestItem = dateMap[latest]["artifact"]
+	common.LogTxtHandler().Info("LATEST ITEM: " + latestItem)
+	return latestItem, nil
 }

@@ -3,51 +3,42 @@ package main
 import (
 	"fmt"
 
+	"os"
+
 	_ "github.com/raynaluzier/go-artifactory/common"
 	"github.com/raynaluzier/go-artifactory/operations"
-	"github.com/raynaluzier/go-artifactory/search"
+	_ "github.com/raynaluzier/go-artifactory/search"
+	"github.com/raynaluzier/go-artifactory/tasks"
+	"github.com/raynaluzier/go-artifactory/util"
 )
-
-
 
 func main(){
 
-	//prop := "channel"
-	//val  := "windows-prod"
-	//prop := "release"
-	//val := "latest-stable"
-	//val := "stable"
-	//val := ""
-	//artifName := "vmxt"
-	//artifName := "W22_X64_STD_24_09_02"
-	//artifName := "w22_X64_STD"
-	//artifName := "win-22-882tv73c2001482aasxvn908"
-	//artifName := "banana"
-	//artifName := "test-artifact"
-	//artifName := "WIN-22-882tv73c2001482aasxvn908.vmxt"
+	// -------------- TESTING --------------------------------------------------
+	// mimicking passing in vars and then assigning them to the global vars
+	serverApi 	:= os.Getenv("ARTIFACTORY_SERVER")
+	token 		:= os.Getenv("ARTIFACTORY_TOKEN")
+	logLevel 	:= os.Getenv("ARTIFACTORY_LOGGING")
+	//outputDir 	:= os.Getenv("ARTIFACTORY_OUTPUTDIR")
 
-	//listProps := []string{}
-	//listProps = append(listProps, "channel")
-
-	//artifPath := "api-testing/test-artifact"
-	//downloadUri := "http://server.com:8082/artifactory/repo-key/folder/win-22-882tv73c2001482aasxvn908.ova"
-
-	//sourcePath := "H:\\repos\\artifactory-go\\output-testing\\another3.txt"
-	//sourcePath := ""
-	//targetPath := "/repo/api-testing/another"
-	//targetPath := ""
-
-	//artifUri := "http://server.com:8082/artifactory/repo-key/folder/win-22-882tv73c2001482aasxvn908.vmxt"
-
+	util.ServerApi = serverApi
+	util.Token     = token
+	util.Logging   = logLevel
+	//util.OutputDir = outputDir
+	// -------------------------------------------------------------------------
 	
 	kvProps := []string{}
-	kvProps = append(kvProps, "release=stable")
+	kvProps = append(kvProps, "release=latest-stable")
+	//kvProps = append(kvProps, "release=stable")
 	
-	//ext := "vmxt"
-	ext := "txt"
-	//artifName := "win-22"
-	artifName := "W22"
-	listArtifacts, err := search.GetArtifactsByName(artifName)
+	ext := "vmxt"
+	artifName := "win-22"
+
+	fmt.Println(tasks.GetImageDetails(util.ServerApi, util.Token, util.Logging, artifName, ext, kvProps))
+	fmt.Println(operations.ListRepos())
+	/*
+	//artifName := "W22"
+	listArtifacts, err := search.GetArtifactsByName(serverApi, token, artifName)
 	if err != nil {
 		fmt.Println("some error")
 	}
@@ -57,7 +48,11 @@ func main(){
 		fmt.Println("some other error")
 	}
 
-	fmt.Println(operations.FilterListByProps(newArtifacts, kvProps))
-
+	result, err := (operations.FilterListByProps(token, newArtifacts, kvProps))
+	if err != nil {
+		fmt.Println("some other error")
+	}
+	fmt.Println(operations.GetArtifactNameFromUri(result))
+	*/
 
 }

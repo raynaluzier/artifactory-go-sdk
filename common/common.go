@@ -8,15 +8,15 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+
+	"github.com/raynaluzier/go-artifactory/util"
 )
 
 var logLevel slog.Level
 
-func AuthCreds() (string, string) {
-	artifServer := os.Getenv("ARTIFACTORY_SERVER")
-	token := os.Getenv("ARTIFACTORY_TOKEN")
+func SetBearer(token string) string {
 	bearer := "Bearer " + token
-	return artifServer, bearer
+	return bearer
 }
 
 func CheckOsPlatform() string {
@@ -71,10 +71,9 @@ func ReturnDuplicates(countMap map[string]int) []string {
 }
 
 func SetArtifUriFromDownloadUri(downloadUri string) string {
-	downloadUri = strings.Replace(downloadUri, "8082", "8081", 1)  // Modify the server port from 8082 to 8081
-	artifServer := os.Getenv("ARTIFACTORY_SERVER")                 // http://server.com:8081/artifactory/api
-	artifSuffix := strings.TrimPrefix(downloadUri, artifServer)    // /repo-key/folder/path/artifact.ext
-	artifUri := artifServer + "/storage" + artifSuffix             // http://server.com:8081/artifactory/api/storage/repo-key/folder/path/artifact.ext
+	downloadUri = strings.Replace(downloadUri, "8082", "8081", 1)     // Modify the server port from 8082 to 8081
+	artifSuffix := strings.TrimPrefix(downloadUri, util.ServerApi)    // /repo-key/folder/path/artifact.ext
+	artifUri := util.ServerApi + "/storage" + artifSuffix             // http://server.com:8081/artifactory/api/storage/repo-key/folder/path/artifact.ext
 	
 	return artifUri
 }
@@ -177,7 +176,7 @@ func ContainsSpecialChars(strings []string) bool {
 }
 
 func SetLoggingLevel() slog.Level {
-	level := os.Getenv("ARTIFACTORY_LOGGING")
+	level := util.Logging
 
 	switch level {
 	case "INFO":

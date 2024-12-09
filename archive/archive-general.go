@@ -10,6 +10,7 @@ import (
 
 	"github.com/raynaluzier/go-artifactory/common"
 	"github.com/raynaluzier/go-artifactory/operations"
+	"github.com/raynaluzier/go-artifactory/util"
 )
 
 type Contents struct {
@@ -47,8 +48,8 @@ var foundPaths []string
 
 func GetItemChildren(item string) ([]Contents, error) {
 	// Item can represent a repo name or a combo of repo/child_folder/subchild_folder/etc
-	artifBase, bearer := common.AuthCreds()
-	requestPath := artifBase + "/storage/" + item
+	bearer := common.SetBearer(util.Token)
+	requestPath := util.ServerApi + "/storage/" + item
 	common.LogTxtHandler().Info(">>> Getting Item Children for Item" + item + "...")
 
 	type itemResults struct {
@@ -79,6 +80,7 @@ func GetItemChildren(item string) ([]Contents, error) {
 			strErr := fmt.Sprintf("%v\n", err)
 			common.LogTxtHandler().Error("Error on response. " + strErr)
 			return nil, err
+
 		} else {
 			defer response.Body.Close()
 			body, err := io.ReadAll(response.Body)
@@ -103,6 +105,7 @@ func GetItemChildren(item string) ([]Contents, error) {
 					common.LogTxtHandler().Debug("CHILD: " + c.Uri + " - IS FOLDER: " + strIsFolder)
 				}
 				return childDetails, nil
+
 			} else {
 				// If no children found, we return empty contents; this isn't an error condition
 				common.LogTxtHandler().Warn("No child objects found for " + item)
@@ -154,8 +157,10 @@ func GetArtifactPath(artifName string) ([]string, error) {
 					common.LogTxtHandler().Info("More than one possible artifact path found.")
 				}
 				return listOfPaths, nil
+
 			} else if len(listOfPaths) == 1 && listOfPaths[0] != "" {
 				return listOfPaths, nil
+
 			} else if len(listOfPaths) == 0 || listOfPaths[0] == "" {
 				err := errors.New("Unable to find path to artifact.")
 				common.LogTxtHandler().Error("Unable to find path to artifact.")
@@ -192,13 +197,16 @@ func RecursiveSearch(list []Contents, artifName, searchPath string, foundPaths [
 				if strings.Contains(list[item].Child, artifName) {      // If we don't find it initially, we'll check with cases converted
 					foundPaths = append(foundPaths, searchPath)         // If found, item's path appended to found list
 					common.LogTxtHandler().Debug("Found possible path: " + searchPath)
+
 				} else if strings.Contains(list[item].Child, lowStr) {
 					foundPaths = append(foundPaths, searchPath)
 					common.LogTxtHandler().Debug("Found possible path: " + searchPath)
+
 				} else if strings.Contains(list[item].Child, upStr) {
 					foundPaths = append(foundPaths, searchPath)
 					common.LogTxtHandler().Debug("Found possible path: " + searchPath)
 				}
+				
 			} else {  // IsFolder == true; so we get its children and repeat the search
 				searchPath = currentPath + list[item].Child		   // 1st "/repo" + "/folder", 2nd "/repo/folder" + "/folder", etc
 				nextList, err = GetItemChildren(searchPath)

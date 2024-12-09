@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/raynaluzier/go-artifactory/common"
+	"github.com/raynaluzier/go-artifactory/util"
 )
 
 var statusCode string
@@ -21,7 +22,7 @@ type prop struct {
 func GetArtifactPropVals(artifUri string, listPropKeys []string) (interface{}, error){
 	// Returns the values for only the properties included in the URI for the given artifact
 	// Search is CASE SENSTIVE
-	_, bearer := common.AuthCreds()
+	bearer := common.SetBearer(util.Token)
 	var properties []prop
 
 	common.LogTxtHandler().Info(">>> Getting Values for Specified Artifact Property(ies): " + artifUri)
@@ -32,9 +33,11 @@ func GetArtifactPropVals(artifUri string, listPropKeys []string) (interface{}, e
 			strProps := strings.Join(listPropKeys, ",")
 			request, err = http.NewRequest("GET", artifUri + "?properties=" + strProps, nil)
 			common.LogTxtHandler().Debug("REQUEST: Sending 'GET' request to: " + artifUri + "?properties=" + strProps)
+
 		} else if len(listPropKeys) == 1 && listPropKeys[0] != "" {
 			request, err = http.NewRequest("GET", artifUri + "?properties=" + listPropKeys[0], nil)
 			common.LogTxtHandler().Debug("REQUEST: Sending 'GET' request to: " + artifUri + "?properties=" + listPropKeys[0])
+
 		} else {
 			err := errors.New("Unable to search for Artifact properties without one or more property names")
 			common.LogTxtHandler().Error("Unable to search for Artifact properties without one or more property names")
@@ -48,6 +51,7 @@ func GetArtifactPropVals(artifUri string, listPropKeys []string) (interface{}, e
 			strErr := fmt.Sprintf("%v\n", err)
 			common.LogTxtHandler().Error("Error on response. " + strErr)
 			return nil, err
+
 		} else {
 			defer response.Body.Close()
 			body, err := io.ReadAll(response.Body)
@@ -109,7 +113,7 @@ func GetArtifactPropVals(artifUri string, listPropKeys []string) (interface{}, e
 }
 
 func GetAllPropsForArtifact(artifUri string) (interface{}, error) {
-	_, bearer := common.AuthCreds()
+	bearer := common.SetBearer(util.Token)
 	var properties [] prop
 
 	common.LogTxtHandler().Info(">>> Getting All Properties for Artifact: " + artifUri + "...")
@@ -195,6 +199,7 @@ func FilterListByProps(listArtifUris, listKvProps []string) (string, error) {
 			artifProps, err := GetAllPropsForArtifact(listArtifUris[a])  // ex return: [{release stable} {testing passed}]
 			if err != nil {
 				common.LogTxtHandler().Debug("No properties returned for artifact: " + listArtifUris[a])
+			
 			} else {
 				// Convert custom data type 'prop' object passed out as interface{} into JSON format
 				jsonBytes, err := json.Marshal(artifProps)
@@ -277,7 +282,7 @@ func FilterListByProps(listArtifUris, listKvProps []string) (string, error) {
 
 func SetArtifactProps(artifUri string, listKvProps []string) (string, error) {
 	// Inputs are CASE SENSITIVE
-	_, bearer := common.AuthCreds()
+	bearer := common.SetBearer(util.Token)
 	requestPath := artifUri + "?properties="
 	common.LogTxtHandler().Info(">>> Setting Specified Property(ies) for: " + artifUri)
 
@@ -286,6 +291,7 @@ func SetArtifactProps(artifUri string, listKvProps []string) (string, error) {
 		common.LogTxtHandler().Error("Special character found.")
 		common.LogTxtHandler().Error("Properties cannot contain special characters --> )( }{ ][ *+^$\\/~`!@#%&<>;, and SPACE")
 		return "", err
+
 	} else {
 		if artifUri != "" && len(listKvProps) != 0 {
 			// Determines whether we will format a list of property keys/values first, or pass a single property key/value pair
@@ -297,9 +303,11 @@ func SetArtifactProps(artifUri string, listKvProps []string) (string, error) {
 
 				request, err = http.NewRequest("PUT", requestPath + strProps, nil)
 				common.LogTxtHandler().Debug("REQUEST: Sending 'PUT' request to: " + requestPath + strProps)
+
 			} else if len(listKvProps) == 1 && listKvProps[0] != "" {
 				request, err = http.NewRequest("PUT", requestPath + listKvProps[0], nil)
 				common.LogTxtHandler().Debug("REQUEST: Sending 'PUT' request to: " + requestPath + listKvProps[0])
+				
 			} else {
 				err := errors.New("Unable to set Artifact properties without one or more property names and values.")
 				common.LogTxtHandler().Error("Unable to set Artifact properties without one or more property names and values.")
@@ -351,7 +359,7 @@ func SetArtifactProps(artifUri string, listKvProps []string) (string, error) {
 func DeleteArtifactProps(artifUri string, listProps []string) (string, error) {
 	// Inputs are CASE SENSITIVE
 	// If a property is provided that doesn't exist (which includes incorrectly cased properties), the API ignores this and will return a successful response
-	_, bearer := common.AuthCreds()
+	bearer := common.SetBearer(util.Token)
 	requestPath := artifUri + "?properties="
 	common.LogTxtHandler().Info(">>> Deleting Specified Property(ies) for Artifact: " + artifUri)
 
