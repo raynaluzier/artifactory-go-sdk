@@ -8,8 +8,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/raynaluzier/go-artifactory/common"
-	"github.com/raynaluzier/go-artifactory/util"
+	"github.com/raynaluzier/artifactory-go-sdk/common"
+	"github.com/raynaluzier/artifactory-go-sdk/util"
 )
 
 func GetArtifactsByNameRepo(artifName, repo string) ([]string, error) {

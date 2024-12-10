@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/raynaluzier/go-artifactory/util"
+	"github.com/raynaluzier/artifactory-go-sdk/util"
 )
 
 var logLevel slog.Level

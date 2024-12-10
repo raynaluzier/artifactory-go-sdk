@@ -3,10 +3,10 @@ package tasks
 import (
 	"fmt"
 
-	"github.com/raynaluzier/go-artifactory/common"
-	"github.com/raynaluzier/go-artifactory/operations"
-	"github.com/raynaluzier/go-artifactory/search"
-	"github.com/raynaluzier/go-artifactory/util"
+	"github.com/raynaluzier/artifactory-go-sdk/common"
+	"github.com/raynaluzier/artifactory-go-sdk/operations"
+	"github.com/raynaluzier/artifactory-go-sdk/search"
+	"github.com/raynaluzier/artifactory-go-sdk/util"
 )
 
 func GetImageDetails(serverApi, token, logLevel, artifName, ext string, kvProps []string) (string, string, string, string) {

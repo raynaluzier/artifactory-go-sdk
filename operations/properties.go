@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/raynaluzier/go-artifactory/common"
-	"github.com/raynaluzier/go-artifactory/util"
+	"github.com/raynaluzier/artifactory-go-sdk/common"
+	"github.com/raynaluzier/artifactory-go-sdk/util"
 )
 
 var statusCode string

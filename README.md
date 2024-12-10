@@ -1,4 +1,4 @@
-# go-artifactory
+# artifactory-go-sdk
 
 ## Summary
 This SDK is a collection of Golang functions used to interact with JFrog Artifactory. While the functions can be called independently, the intent is to use them with a custom Packer plugin integration.
@@ -48,7 +48,7 @@ These functions are related operational-type behaviors.
 These functions are related specifically to searching for one or many artifacts. There's multiple ways to do this and how that's done is dependent on the information provided. These functions can be found under the `search.go` file. Functions such as GETTING a list of artifacts by a certain property(ies), GETTING a list of artifacts by name, and FILTERING a list of artifacts by file type would be found here.
 
 ### Tasks
-These functions are larger operations that first set the global variables, and then make a series of function calls to perform specific activities. While they can be called independently, they were created in support of a custom Packer plugin to streamline passing environment-specific variables, such as the Artifactory token, server, logging, and output directory. Rather than passing one or more of these to every function in the SDK (in addition to the required inputs), they are passed in ONCE to the desired `task` function, the global variables are set, and then they are used automatically when calling each sub-function without having to pass them in over and over.
+These functions are larger operations that first set the global variables, and then make a series of function calls to perform specific activities. While they can be called independently, they were created in support of a custom Packer plugin to streamline passing environment-specific variables, such as the Artifactory token, server, logging, and output directory. Rather than passing one or more of these to every function in the SDK (in addition to the required inputs), they are passed in ONCE to the desired function, the global variables are set, and then they are used automatically when calling each sub-function without having to pass them in over and over.
 
 These larger tasks also group the targeted functions of a desired behavior into a single operation and keep the plugin code to a minimum and simplify performing that desired behavior. For example, finding an image/artifact and returning it's name, created date, and download URI involves six (6) different function calls and passing in specific information. Using the `GetImageDetails()` function is just a single call which handles those underlying function calls 'behind the scenes'.
 
@@ -65,15 +65,15 @@ The `archive-general.go` file contains functions related to finding a specific a
 ## Function Reference
 A reference outline of each function's behavior and any special notes can be found in the corresponding documents below.
 
-- [Common](https://github.com/raynaluzier/go-artifactory/blob/main/docs/common.md)
+- [Common](https://github.com/raynaluzier/artifactory-go-sdk/blob/main/docs/common.md)
 
-- [Operations/General](https://github.com/raynaluzier/go-artifactory/blob/main/docs/ops-general.md)
+- [Operations/General](https://github.com/raynaluzier/artifactory-go-sdk/blob/main/docs/ops-general.md)
 
-- [Operations/Properties](https://github.com/raynaluzier/go-artifactory/blob/main/docs/ops-properties.md)
+- [Operations/Properties](https://github.com/raynaluzier/artifactory-go-sdk/blob/main/docs/ops-properties.md)
 
-- [Search](https://github.com/raynaluzier/go-artifactory/blob/main/docs/search.md)
+- [Search](https://github.com/raynaluzier/artifactory-go-sdk/blob/main/docs/search.md)
 
-- [Tasks](https://github.com/raynaluzier/go-artifactory/blob/main/docs/tasks.md)
+- [Tasks](https://github.com/raynaluzier/artifactory-go-sdk/blob/main/docs/tasks.md)
 
 
 ## How to Use
