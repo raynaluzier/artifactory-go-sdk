@@ -9,7 +9,7 @@ import (
 	"github.com/raynaluzier/go-artifactory/util"
 )
 
-func GetImageDetails(serverApi, token, logLevel, artifName, ext string, kvProps []string) (string, string, string) {
+func GetImageDetails(serverApi, token, logLevel, artifName, ext string, kvProps []string) (string, string, string, string) {
 	util.ServerApi = serverApi
 	util.Token     = token
 	util.Logging   = logLevel
@@ -60,5 +60,5 @@ func GetImageDetails(serverApi, token, logLevel, artifName, ext string, kvProps 
 		common.LogTxtHandler().Error("Unable to get download URI - " + strErr)
 	}
 	
-	return artifactName, createDate, downloadUri
+	return artifactUri, artifactName, createDate, downloadUri
 }
