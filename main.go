@@ -5,11 +5,11 @@ import (
 
 	"os"
 
-	_ "github.com/raynaluzier/go-artifactory/common"
-	"github.com/raynaluzier/go-artifactory/operations"
-	_ "github.com/raynaluzier/go-artifactory/search"
-	"github.com/raynaluzier/go-artifactory/tasks"
-	"github.com/raynaluzier/go-artifactory/util"
+	_ "github.com/raynaluzier/artifactory-go-sdk/common"
+	"github.com/raynaluzier/artifactory-go-sdk/operations"
+	_ "github.com/raynaluzier/artifactory-go-sdk/search"
+	"github.com/raynaluzier/artifactory-go-sdk/tasks"
+	"github.com/raynaluzier/artifactory-go-sdk/util"
 )
 
 func main(){

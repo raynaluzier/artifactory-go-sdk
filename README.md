@@ -22,12 +22,12 @@ Every Artifactory API call requires passing the bearer token, and several requir
 
 Using .env File: Configure the `.env` file with the Artifactory Identity Token and Artifactory server; the Output Directory is optional but helpful when downloading artifacts to ensure they're placed in the desired location. Alternatively, they will be placed in the user's HOME directory. Logging provides an option to change the level of logging to display.
 
-    * `ARTIFACTORY_TOKEN` - Artifactory Identity Token --> Ex:  ARTIFACTORY_TOKEN=1234567890abcdefghijklmnopqrstuv
-    * `ARTIFACTORY_SERVER` - Artifactory Server --> Ex:  ARTIFACTORY_SERVER=https://server.com:8081/artifactory/api
+    * `ARTIFACTORY_TOKEN`     - Artifactory Identity Token --> Ex:  ARTIFACTORY_TOKEN=1234567890abcdefghijklmnopqrstuv
+    * `ARTIFACTORY_SERVER`    - Artifactory Server         --> Ex:  ARTIFACTORY_SERVER=https://server.com:8081/artifactory/api
     * `ARTIFACTORY_OUTPUTDIR` - Output directory for downloading artifacts --> Ex: ARTIFACTORY_OUTPUTDIR=H:\output-dir\path\ or /output-dir/path/
-    * `ARTIFACTORY_LOGGING` - Logging level (INFO, WARN, ERROR, DEBUG); defaults to 'INFO' --> Ex:  ARTIFACTORY_LOGGING=DEBUG
+    * `ARTIFACTORY_LOGGING`   - Logging level (INFO, WARN, ERROR, DEBUG); defaults to 'INFO' --> Ex:  ARTIFACTORY_LOGGING=DEBUG
 
-    Then use `os.Getenv` to set `util.ServerApi`, `util.Token`, `util.Logging`, and `util.OutputDir` respectively.
+Then use `os.Getenv` to set `util.ServerApi`, `util.Token`, `util.Logging`, and `util.OutputDir` respectively.
 
 ## About
 This SDK is broken into several packages: `common`, `operations`, `search`, `tasks`, and `util` based on the underlying behavior of the functions. Some functions are specifically related to certain behaviors so they have been grouped together into packages as described below. 
