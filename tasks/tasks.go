@@ -65,7 +65,7 @@ func GetImageDetails(serverApi, token, logLevel, artifName, ext string, kvProps 
 }
 
 // Must have Artifactory instance licensed at Pro or higher, access to create/remove repos and artifacts
-func SetupTest(serverApi, token, testRepoName, configFilePath, testArtifact, fileSuffix string) (string, error) {
+func SetupTest(serverApi, token, testRepoName, configFilePath, testArtifact, fileSuffix string, kvProps []string) (string, error) {
 	util.ServerApi = serverApi
 	util.Token	   = token
 
@@ -82,6 +82,11 @@ func SetupTest(serverApi, token, testRepoName, configFilePath, testArtifact, fil
 	}
 
 	artifactUri := common.SetArtifUriFromDownloadUri(downloadUri)
+
+	statusCode, err := operations.SetArtifactProps(artifactUri, kvProps)
+	if statusCode != "204" {
+		log.Fatal(err)
+	}
 
 	return artifactUri, nil
 }
