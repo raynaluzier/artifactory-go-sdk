@@ -3,7 +3,10 @@ package common
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"log"
 	"log/slog"
+	"net/http"
 	"os"
 	"regexp"
 	"runtime"
@@ -198,7 +201,7 @@ func LogTxtHandler() *slog.Logger {
 	opts := &slog.HandlerOptions{
 		Level: slog.Level(loggingLevel),
 	}
-	handler := slog.NewTextHandler(os.Stdout, opts)
+	handler   := slog.NewTextHandler(os.Stdout, opts)
 	txtLogger := slog.New(handler)
 	return txtLogger
 }
@@ -211,4 +214,152 @@ func LogJsonHandler() *slog.Logger {
 	handler := slog.NewJSONHandler(os.Stdout, opts)
 	jsonLogger := slog.New(handler)
 	return jsonLogger
+}
+
+func CreateTestDirectory(dirName string) string {
+	userHomeDir, err := os.UserHomeDir()  //does not include ending slash
+	if err != nil {
+		fmt.Println("Error getting user's home directory: ", err)
+	}
+
+	updatedDirPath := CheckAddSlashToPath(userHomeDir)
+	dirPath := updatedDirPath + dirName
+	newDirPath := CheckAddSlashToPath(dirPath) //adds ending slash
+
+	err = os.Mkdir(newDirPath, 0755)
+	if err != nil {
+		fmt.Println("Error creating directory: " + newDirPath + " - ", err)
+	} else {
+		fmt.Println("Successfully created directory: " + newDirPath)
+	}
+
+	return newDirPath
+}
+
+// create test artifact... create repo config file
+func CreateTestFile(dirPath, fileName, fileContents string) string {
+	// fileName should be "file.ext" format
+	var (
+		err					error
+		tmpFile, openFile	*os.File
+		filePath 			string
+	)
+
+	filePath = dirPath + fileName 
+
+	if tmpFile, err = os.Create(filePath); err != nil {
+		log.Fatal(err)
+	}
+
+	err = os.WriteFile(filePath, []byte(fileContents), 0755)
+	if err != nil {
+		log.Fatal(err)
+	} else {
+		fmt.Println("File contents written successfully.")
+	}
+
+	if err = tmpFile.Close(); err != nil {
+		log.Fatal(err)
+	}
+
+	if openFile, err = os.Open(filePath); err != nil {
+		log.Fatal(err)
+	}
+
+	if err = openFile.Close(); err != nil {
+		log.Fatal(err)
+	}
+
+	return filePath
+}
+
+// Take in directory path created previously, and new JSON file for repo config
+func CreateTestRepo(testRepoName, configFilePath string) (string, error) {
+	
+	/* // These items must be setup first if calling this outside of the plugin test:
+	testDirName        := "test-directory"
+	testRepoName       := "test-packer-plugin"
+	testRepoConfigName := "repository-config.json"
+	repoConfigContents := "{ \"key\": \"" + testRepoName + "\",\"rclass\": \"local\", \"description\": \"temporary; test repo for packer plugin acceptance testing\"}"
+	testDirPath    := CreateTestDirectory(testDirName)
+	configFilePath := CreateTestFile(testDirPath, testRepoConfigName, repoConfigContents)*/
+
+	bearer := SetBearer(util.Token)
+	requestPath := util.ServerApi + "/repositories" + testRepoName
+	data := strings.NewReader("@/" + configFilePath)
+
+	request, err := http.NewRequest("PUT", requestPath, data)
+	request.Header.Add("Authorization", bearer)
+
+	client := &http.Client{}
+	response, err := client.Do(request)
+
+	if err != nil {
+		log.Fatal(err)
+		return "", err
+	} else {
+		defer response.Body.Close()
+		body, err := io.ReadAll(response.Body)
+		fmt.Println(string(body))
+
+		if err != nil {
+			log.Fatal(err)
+			return "", err
+		}
+
+		// Insert unmarshal and parsing JSON data here
+	}
+	
+
+	return "repo uri", nil  // will update this once we can see what the output looks like
+}
+
+// validate once access to artifactory
+func DeleteTestRepo(testRepoName string) (string, error) {
+	var statusCode string
+	bearer := SetBearer(util.Token)
+	requestPath := util.ServerApi + "/repositories" + testRepoName
+
+	request, err := http.NewRequest("DELETE", requestPath, nil)
+	request.Header.Add("Authorization", bearer)
+	
+	client := &http.Client{}
+	response, err := client.Do(request)
+
+	if err != nil {
+		log.Fatal(err)
+		return "", err
+	} else {
+		defer response.Body.Close()
+		body, err := io.ReadAll(response.Body)
+		fmt.Println(string(body))
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if response.StatusCode == 204 {
+			fmt.Println("Request completed successfully")
+			statusCode = "204"
+		} else {
+			fmt.Println("Unable to complete request")
+			statusCode = "404"
+		}
+		return statusCode, nil
+	}
+}
+
+func DeleteTestFile(filePath string) {
+	if err := os.Remove(filePath); err != nil {
+		log.Fatal(err)
+	} else {
+		fmt.Println("Successfully removed file: " + filePath)
+	}
+}
+
+func DeleteTestDirectory(dirPath string) {
+	err := os.Remove(dirPath)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
