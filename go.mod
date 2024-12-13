@@ -1,3 +1,3 @@
 module github.com/raynaluzier/artifactory-go-sdk
 
-go 1.23.1
+go 1.23
