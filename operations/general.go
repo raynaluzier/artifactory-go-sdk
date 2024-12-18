@@ -106,7 +106,7 @@ func ListRepos() ([]string, error) {
 func GetDownloadUri(artifUri string) (string, error) {
 	bearer := common.SetBearer(util.Token)
 	var downloadUri string
-	common.LogTxtHandler().Info(">>> Getting Download URI from Artifact URI" + artifUri + "...")
+	common.LogTxtHandler().Info(">>> Getting Download URI from Artifact URI: " + artifUri + "...")
 
 	if (artifUri != "") {
 		common.LogTxtHandler().Debug("REQUEST: Sending 'GET' request to: " + artifUri)
