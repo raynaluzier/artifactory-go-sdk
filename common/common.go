@@ -74,10 +74,21 @@ func ReturnDuplicates(countMap map[string]int) []string {
 }
 
 func SetArtifUriFromDownloadUri(downloadUri string) string {
-	downloadUri = strings.Replace(downloadUri, "8082", "8081", 1)     // Modify the server port from 8082 to 8081
-	artifSuffix := strings.TrimPrefix(downloadUri, util.ServerApi)    // /repo-key/folder/path/artifact.ext
-	artifUri := util.ServerApi + "/storage" + artifSuffix             // http://server.com:8081/artifactory/api/storage/repo-key/folder/path/artifact.ext
-	
+	var artifPrefixUri string
+	var artifSuffix string
+	var artifUri string
+
+	if strings.Contains(downloadUri, "8082") {							// if self-hosted, port was 8082		(http://server.com:8082/artfactory/repo-key/folder/artifact.ext)
+		downloadUri = strings.Replace(downloadUri, "8082", "8081", 1)	// Replace port 8082 with 8081			(http://server.com:8081/artfactory/api)
+		artifPrefixUri = strings.TrimSuffix(util.ServerApi, "/api")		// Trim ending '/api' from server url   (http://server.com:8081/artfactory)
+		artifSuffix = strings.TrimPrefix(downloadUri, artifPrefixUri)	// Trim server url to get artifact path (/repo-key/folder/artifact.ext)
+		artifUri = artifPrefixUri + "/api/storage" + artifSuffix		// Form artifact URI -> http://server.com:8081/artfactory/api/storage/repo-key/folder/artifact.ext
+
+	} else {					                                        // self-hosted with port 8081 or hosted jfrog.io
+		artifPrefixUri = strings.TrimSuffix(util.ServerApi, "/api")		// Trim ending '/api' from server url   
+		artifSuffix = strings.TrimPrefix(downloadUri, artifPrefixUri)	// Trim server url to get artifact path (/repo-key/folder/artifact.ext)
+		artifUri = artifPrefixUri + "/api/storage" + artifSuffix		// Form artifact URI 
+	}
 	return artifUri
 }
 
