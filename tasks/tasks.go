@@ -2,7 +2,6 @@ package tasks
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/raynaluzier/artifactory-go-sdk/common"
 	"github.com/raynaluzier/artifactory-go-sdk/operations"
@@ -65,57 +64,76 @@ func GetImageDetails(serverApi, token, logLevel, artifName, ext string, kvProps 
 }
 
 // Must have Artifactory instance licensed at Pro or higher, access to create/remove repos and artifacts
-func SetupTest(serverApi, token, testRepoName, configFilePath, testArtifact, fileSuffix string, kvProps []string) (string, error) {
+func SetupTest(serverApi, token string) (string, string, string, error) {
+	// testArtifactPath is the full path to the artifact - ex - c:\lab\test-artifact.txt
+	// testRepo is the target path to put the artifact in - /repo/folder
+
 	util.ServerApi = serverApi
 	util.Token	   = token
 
-	testRepo, err  := common.CreateTestRepo(testRepoName, configFilePath)
+	testDirName      := "test-directory"
+    testArtifactName := "test-artifact.txt"
+    artifactSuffix   := ""
+    artifactContents := "Just some test content."
+	var kvProps []string
+	
+	// Prep test artifact
+	testDirPath  := common.CreateTestDirectory(testDirName)
+	testArtifactPath := common.CreateTestFile(testDirPath, testArtifactName, artifactContents)
+	kvProps = append(kvProps,"release=latest-stable")
+
+	// Setup test repo
+	testRepoPath, err  := common.CreateTestRepo()   //-->  /test-packer-plugin
 	if err != nil {
-		log.Fatal(err)
-		return "", err
+		strErr := fmt.Sprintf("%v\n", err)
+		common.LogTxtHandler().Error("Unable to create repo: " + strErr)
+		return "", "", "", err
 	}
 
-	downloadUri, err := operations.UploadFile(testArtifact, testRepo, fileSuffix)
+	// Upload test artifact to test repo
+	// Checks for ending slash on target repo path as part of this
+	downloadUri, err := operations.UploadFile(testArtifactPath, testRepoPath, artifactSuffix)
 	if err != nil {
-		log.Fatal(err)
-		return "", err
+		strErr := fmt.Sprintf("%v\n", err)
+		common.LogTxtHandler().Error("Unable to get download URI: " + strErr)
+		return "", "", "", err
 	}
 
 	artifactUri := common.SetArtifUriFromDownloadUri(downloadUri)
 
+	// Set properties on the test artifact
 	statusCode, err := operations.SetArtifactProps(artifactUri, kvProps)
 	if statusCode != "204" {
-		log.Fatal(err)
+		strErr := fmt.Sprintf("%v\n", err)
+		common.LogTxtHandler().Error("Error setting artifact properties: " + strErr)
 	}
 
-	return artifactUri, nil
+	return artifactUri, testDirPath, testArtifactPath, nil
 }
 
-func TeardownTest(serverApi, token, testRepoName, artifactUri string) (string) {
+func TeardownTest(serverApi, token, artifactUri, testDirPath, testArtifactPath string) (string) {
 	util.ServerApi = serverApi
 	util.Token	   = token
+	common.LogTxtHandler().Debug("TEST ARTIFACT URI: " + artifactUri)
 
-	// Delete test artifact
-	statusCodeArtif, err := operations.DeleteArtifact(artifactUri)
-	if statusCodeArtif == "204" {
-		fmt.Println("Deletion of test artifact completed successfully.")
+	// Delete local test file
+	common.DeleteTestFile(testArtifactPath)
+
+	// Delete locat test directory
+	common.DeleteTestDirectory(testDirPath)
+
+	// Delete test repo; will delete test artifact with it
+	statusCode, err := common.DeleteTestRepo()
+	if statusCode == "200" {
+		common.LogTxtHandler().Info("Deletion of test repo completed successfully.")
 	} else {
-		fmt.Println("Unable to delete test artifact - ", err)
+		strErr := fmt.Sprintf("%v\n", err)
+		common.LogTxtHandler().Error("Unable to delete test repo - " + strErr)
 	}
 
-	// Delete test repo
-	statusCodeRepo, err := common.DeleteTestRepo(testRepoName)
-	if statusCodeRepo == "204" {
-		fmt.Println("Deletion of test repo completed successfully.")
-	} else {
-		fmt.Println("Unable to delete test repo - ", err)
-	}
-
-	if statusCodeArtif == "204" && statusCodeRepo == "204" {
-		statusCode := "204"
+	if statusCode == "200" {
 		return statusCode
 	} else {
-		statusCode := "404"
 		return statusCode
 	}
 }

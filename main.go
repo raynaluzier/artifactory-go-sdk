@@ -1,14 +1,11 @@
 package main
 
 import (
-	"fmt"
-
 	"os"
 
 	_ "github.com/raynaluzier/artifactory-go-sdk/common"
-	"github.com/raynaluzier/artifactory-go-sdk/operations"
+	_ "github.com/raynaluzier/artifactory-go-sdk/operations"
 	_ "github.com/raynaluzier/artifactory-go-sdk/search"
-	"github.com/raynaluzier/artifactory-go-sdk/tasks"
 	"github.com/raynaluzier/artifactory-go-sdk/util"
 )
 
@@ -19,7 +16,7 @@ func main(){
 	serverApi 	:= os.Getenv("ARTIFACTORY_SERVER")
 	token 		:= os.Getenv("ARTIFACTORY_TOKEN")
 	logLevel 	:= os.Getenv("ARTIFACTORY_LOGGING")
-	//outputDir 	:= os.Getenv("ARTIFACTORY_OUTPUTDIR")
+	//outputDir 	:= os.Getenv("ARTIFACTORY_OUTPUTDIR")   //c:\lab\output-testing\ or /lab/output-testing
 
 	util.ServerApi = serverApi
 	util.Token     = token
@@ -27,32 +24,5 @@ func main(){
 	//util.OutputDir = outputDir
 	// -------------------------------------------------------------------------
 	
-	kvProps := []string{}
-	kvProps = append(kvProps, "release=latest-stable")
-	//kvProps = append(kvProps, "release=stable")
-	
-	ext := "vmxt"
-	artifName := "win-22"
-
-	fmt.Println(tasks.GetImageDetails(util.ServerApi, util.Token, util.Logging, artifName, ext, kvProps))
-	fmt.Println(operations.ListRepos())
-	/*
-	//artifName := "W22"
-	listArtifacts, err := search.GetArtifactsByName(serverApi, token, artifName)
-	if err != nil {
-		fmt.Println("some error")
-	}
-
-	newArtifacts, err := (search.FilterListByFileType(ext, listArtifacts))
-	if err != nil {
-		fmt.Println("some other error")
-	}
-
-	result, err := (operations.FilterListByProps(token, newArtifacts, kvProps))
-	if err != nil {
-		fmt.Println("some other error")
-	}
-	fmt.Println(operations.GetArtifactNameFromUri(result))
-	*/
 
 }

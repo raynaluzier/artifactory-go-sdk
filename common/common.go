@@ -1,10 +1,10 @@
 package common
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -227,6 +227,8 @@ func LogJsonHandler() *slog.Logger {
 	return jsonLogger
 }
 
+// --> The following functions are used for setting up a test environment for artifactory plugin acceptance testing
+
 func CreateTestDirectory(dirName string) string {
 	userHomeDir, err := os.UserHomeDir()  //does not include ending slash
 	if err != nil {
@@ -239,15 +241,16 @@ func CreateTestDirectory(dirName string) string {
 
 	err = os.Mkdir(newDirPath, 0755)
 	if err != nil {
-		fmt.Println("Error creating directory: " + newDirPath + " - ", err)
+		strErr := fmt.Sprintf("%v\n", err)
+		LogTxtHandler().Error("Error creating directory: " + newDirPath + " - " + strErr)
 	} else {
-		fmt.Println("Successfully created directory: " + newDirPath)
+		LogTxtHandler().Info("Successfully created directory: " + newDirPath)
 	}
 
 	return newDirPath
 }
 
-// create test artifact... create repo config file
+// create test artifact...
 func CreateTestFile(dirPath, fileName, fileContents string) string {
 	// fileName should be "file.ext" format
 	var (
@@ -259,77 +262,94 @@ func CreateTestFile(dirPath, fileName, fileContents string) string {
 	filePath = dirPath + fileName 
 
 	if tmpFile, err = os.Create(filePath); err != nil {
-		log.Fatal(err)
+		strErr := fmt.Sprintf("%v\n", err)
+		LogTxtHandler().Error("Error creating test file - " + strErr)
 	}
 
 	err = os.WriteFile(filePath, []byte(fileContents), 0755)
 	if err != nil {
-		log.Fatal(err)
+		strErr := fmt.Sprintf("%v\n", err)
+		LogTxtHandler().Error("Error writing contents to test file - " + strErr)
 	} else {
-		fmt.Println("File contents written successfully.")
+		LogTxtHandler().Info("File contents written successfully.")
 	}
 
 	if err = tmpFile.Close(); err != nil {
-		log.Fatal(err)
+		strErr := fmt.Sprintf("%v\n", err)
+		LogTxtHandler().Error("Error closing test tmp file - " + strErr)
 	}
 
 	if openFile, err = os.Open(filePath); err != nil {
-		log.Fatal(err)
+		strErr := fmt.Sprintf("%v\n", err)
+		LogTxtHandler().Error("Error opening test file - " + strErr)
 	}
 
 	if err = openFile.Close(); err != nil {
-		log.Fatal(err)
+		strErr := fmt.Sprintf("%v\n", err)
+		LogTxtHandler().Error("Error closing test file - " + strErr)
 	}
 
-	return filePath
+	return filePath   // ex: c:\lab\file.txt
 }
 
-// Take in directory path created previously, and new JSON file for repo config
-func CreateTestRepo(testRepoName, configFilePath string) (string, error) {
-	
-	/* // These items must be setup first if calling this outside of the plugin test:
-	testDirName        := "test-directory"
-	testRepoName       := "test-packer-plugin"
-	testRepoConfigName := "repository-config.json"
-	repoConfigContents := "{ \"key\": \"" + testRepoName + "\",\"rclass\": \"local\", \"description\": \"temporary; test repo for packer plugin acceptance testing\"}"
-	testDirPath    := CreateTestDirectory(testDirName)
-	configFilePath := CreateTestFile(testDirPath, testRepoConfigName, repoConfigContents)*/
+const testRepoName = "test-packer-plugin"    // DO NOT MODIFY
 
+func CreateTestRepo() (string, error) {
+	LogTxtHandler().Info(">>> Creating test repo: " + testRepoName + "...")
+
+	// this was the only way not to get a JSON parsing error from Artifactory
+	jsonData, err := json.Marshal(map[string]interface{} {
+		"key": "test-packer-plugin",
+		"rclass": "local",
+		"description": "temporary; test repo for packer plugin testing",
+	})
+	if err != nil {
+		strErr := fmt.Sprintf("%v\n", err)
+		LogTxtHandler().Error("Error: " + strErr)
+	}
 	bearer := SetBearer(util.Token)
-	requestPath := util.ServerApi + "/repositories" + testRepoName
-	data := strings.NewReader("@/" + configFilePath)
+	requestPath := util.ServerApi + "/repositories/" + testRepoName
+	LogTxtHandler().Debug("REQUEST: Sending 'PUT' request to: " + requestPath)
 
-	request, err := http.NewRequest("PUT", requestPath, data)
+	request, err := http.NewRequest("PUT", requestPath, bytes.NewBuffer(jsonData))
 	request.Header.Add("Authorization", bearer)
+	request.Header.Add("Content-Type", "application/json")
 
 	client := &http.Client{}
 	response, err := client.Do(request)
 
 	if err != nil {
-		log.Fatal(err)
+		strErr := fmt.Sprintf("%v\n", err)
+		LogTxtHandler().Error("Error: " + strErr)
 		return "", err
 	} else {
 		defer response.Body.Close()
 		body, err := io.ReadAll(response.Body)
-		fmt.Println(string(body))
+		LogTxtHandler().Info(string(body))
 
 		if err != nil {
-			log.Fatal(err)
+			strErr := fmt.Sprintf("%v\n", err)
+			LogTxtHandler().Error("Error: " + strErr)
 			return "", err
 		}
 
-		// Insert unmarshal and parsing JSON data here
+		if response.StatusCode == 200 {
+			fmt.Println("Request completed successfully")
+			testRepoPath := "/" + testRepoName
+			return testRepoPath, nil
+		} else {
+			fmt.Println("Unable to complete request")
+			return "", err
+		}
 	}
-	
-
-	return "repo uri", nil  // will update this once we can see what the output looks like
 }
 
-// validate once access to artifactory
-func DeleteTestRepo(testRepoName string) (string, error) {
+func DeleteTestRepo() (string, error) {
+	LogTxtHandler().Info(">>> Deleting test repo...")
 	var statusCode string
 	bearer := SetBearer(util.Token)
-	requestPath := util.ServerApi + "/repositories" + testRepoName
+	requestPath := util.ServerApi + "/repositories/" + testRepoName
+	LogTxtHandler().Debug("REQUEST: Sending 'GET' request to: " + requestPath)
 
 	request, err := http.NewRequest("DELETE", requestPath, nil)
 	request.Header.Add("Authorization", bearer)
@@ -338,23 +358,25 @@ func DeleteTestRepo(testRepoName string) (string, error) {
 	response, err := client.Do(request)
 
 	if err != nil {
-		log.Fatal(err)
+		strErr := fmt.Sprintf("%v\n", err)
+		LogTxtHandler().Error("Error deleting test repo: " + strErr)
 		return "", err
 	} else {
 		defer response.Body.Close()
 		body, err := io.ReadAll(response.Body)
-		fmt.Println(string(body))
+		LogTxtHandler().Info(string(body))
 
 		if err != nil {
-			log.Fatal(err)
+			strErr := fmt.Sprintf("%v\n", err)
+			LogTxtHandler().Error("Error deleting test repo - " + strErr)
 		}
 
-		if response.StatusCode == 204 {
-			fmt.Println("Request completed successfully")
-			statusCode = "204"
+		if response.StatusCode == 200 {
+			LogTxtHandler().Info("Request completed successfully")
+			statusCode = "200"
 		} else {
-			fmt.Println("Unable to complete request")
-			statusCode = "404"
+			LogTxtHandler().Info("Unable to complete request")
+			statusCode = "400"
 		}
 		return statusCode, nil
 	}
@@ -362,15 +384,19 @@ func DeleteTestRepo(testRepoName string) (string, error) {
 
 func DeleteTestFile(filePath string) {
 	if err := os.Remove(filePath); err != nil {
-		log.Fatal(err)
+		strErr := fmt.Sprintf("%v\n", err)
+		LogTxtHandler().Error("Error removing test file - " + strErr)
 	} else {
-		fmt.Println("Successfully removed file: " + filePath)
+		LogTxtHandler().Info("Successfully removed file: " + filePath)
 	}
 }
 
 func DeleteTestDirectory(dirPath string) {
 	err := os.Remove(dirPath)
 	if err != nil {
-		log.Fatal(err)
+		strErr := fmt.Sprintf("%v\n", err)
+		LogTxtHandler().Error("Error removing test directory - " + strErr)
+	} else {
+		LogTxtHandler().Info("Successfully removed test directory: " + dirPath)
 	}
 }

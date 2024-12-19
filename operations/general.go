@@ -376,6 +376,7 @@ func UploadFile(sourcePath, targetPath, fileSuffix string) (string, error) {
 			
 			newArtifactPath := trimmedBase + targetPath + fileName                  // Forms: http://artifactory_base_api_url/repo-key/folder/artifact.txt
 			data := strings.NewReader("@/" + sourcePath)                            // Formats the payload appropriately
+			fmt.Println(data)
 			common.LogTxtHandler().Debug("REQUEST: Sending 'PUT' request to: " + newArtifactPath)
 			
 			request, err = http.NewRequest("PUT", newArtifactPath, data)
