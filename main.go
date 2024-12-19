@@ -1,11 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	_ "github.com/raynaluzier/artifactory-go-sdk/common"
 	_ "github.com/raynaluzier/artifactory-go-sdk/operations"
 	_ "github.com/raynaluzier/artifactory-go-sdk/search"
+	"github.com/raynaluzier/artifactory-go-sdk/tasks"
 	"github.com/raynaluzier/artifactory-go-sdk/util"
 )
 
@@ -24,5 +26,16 @@ func main(){
 	//util.OutputDir = outputDir
 	// -------------------------------------------------------------------------
 	
+	/*
+    testArtifact := "C:\\lab\\test-artifact.txt"
+    fileSuffix := ""
+    kvProps := []string{}
+    kvProps = append(kvProps, "release=latest-stable")
+    fmt.Println(tasks.SetupTest(util.ServerApi, util.Token, testArtifact, fileSuffix, kvProps))
+    */
 
+    
+    //artifactUri := "https://riverpointtechnology.jfrog.io/artifactory/api/storage/rpt-libs-local/ecp/win/win-22-4444444.vmxt"
+    fmt.Println(tasks.TeardownTest(util.ServerApi, util.Token))
+    
 }

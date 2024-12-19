@@ -64,30 +64,19 @@ func GetImageDetails(serverApi, token, logLevel, artifName, ext string, kvProps 
 }
 
 // Must have Artifactory instance licensed at Pro or higher, access to create/remove repos and artifacts
-func SetupTest(serverApi, token string) (string, string, string, error) {
-	// testArtifactPath is the full path to the artifact - ex - c:\lab\test-artifact.txt
-	// testRepo is the target path to put the artifact in - /repo/folder
+func SetupTest(serverApi, token, testArtifactPath, artifactSuffix string, kvProps []string) (string, error) {
+	// testArtifactPath is the full path to the artifact -> ex - c:\lab\test-artifact.txt
+	// testRepoPath is the target path to put the artifact in -> /test-packer-plugin
 
 	util.ServerApi = serverApi
 	util.Token	   = token
-
-	testDirName      := "test-directory"
-    testArtifactName := "test-artifact.txt"
-    artifactSuffix   := ""
-    artifactContents := "Just some test content."
-	var kvProps []string
-	
-	// Prep test artifact
-	testDirPath  := common.CreateTestDirectory(testDirName)
-	testArtifactPath := common.CreateTestFile(testDirPath, testArtifactName, artifactContents)
-	kvProps = append(kvProps,"release=latest-stable")
 
 	// Setup test repo
 	testRepoPath, err  := common.CreateTestRepo()   //-->  /test-packer-plugin
 	if err != nil {
 		strErr := fmt.Sprintf("%v\n", err)
 		common.LogTxtHandler().Error("Unable to create repo: " + strErr)
-		return "", "", "", err
+		return "", err
 	}
 
 	// Upload test artifact to test repo
@@ -96,7 +85,7 @@ func SetupTest(serverApi, token string) (string, string, string, error) {
 	if err != nil {
 		strErr := fmt.Sprintf("%v\n", err)
 		common.LogTxtHandler().Error("Unable to get download URI: " + strErr)
-		return "", "", "", err
+		return "", err
 	}
 
 	artifactUri := common.SetArtifUriFromDownloadUri(downloadUri)
@@ -108,27 +97,21 @@ func SetupTest(serverApi, token string) (string, string, string, error) {
 		common.LogTxtHandler().Error("Error setting artifact properties: " + strErr)
 	}
 
-	return artifactUri, testDirPath, testArtifactPath, nil
+	return artifactUri, nil
 }
 
-func TeardownTest(serverApi, token, artifactUri, testDirPath, testArtifactPath string) (string) {
+func TeardownTest(serverApi, token string) (string) {
 	util.ServerApi = serverApi
 	util.Token	   = token
-	common.LogTxtHandler().Debug("TEST ARTIFACT URI: " + artifactUri)
+	common.LogTxtHandler().Debug("DELETING TEST REPO AND ARTIFACT...")
 
-	// Delete local test file
-	common.DeleteTestFile(testArtifactPath)
-
-	// Delete locat test directory
-	common.DeleteTestDirectory(testDirPath)
-
-	// Delete test repo; will delete test artifact with it
+	// Deletes test repo; also deletes test artifact with it
 	statusCode, err := common.DeleteTestRepo()
 	if statusCode == "200" {
-		common.LogTxtHandler().Info("Deletion of test repo completed successfully.")
+		common.LogTxtHandler().Info("Deletion of test repo with test artifact completed successfully.")
 	} else {
 		strErr := fmt.Sprintf("%v\n", err)
-		common.LogTxtHandler().Error("Unable to delete test repo - " + strErr)
+		common.LogTxtHandler().Error("Unable to delete test repo and artifact - " + strErr)
 	}
 
 	if statusCode == "200" {

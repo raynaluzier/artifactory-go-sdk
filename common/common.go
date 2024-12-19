@@ -334,11 +334,12 @@ func CreateTestRepo() (string, error) {
 		}
 
 		if response.StatusCode == 200 {
-			fmt.Println("Request completed successfully")
+			LogTxtHandler().Info("Request completed successfully")
 			testRepoPath := "/" + testRepoName
 			return testRepoPath, nil
 		} else {
-			fmt.Println("Unable to complete request")
+			strErr := fmt.Sprintf("%v\n", err)
+			LogTxtHandler().Error("Unable to complete request - " + strErr)
 			return "", err
 		}
 	}
