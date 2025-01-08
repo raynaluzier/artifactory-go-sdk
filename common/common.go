@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"path"
 	"regexp"
 	"runtime"
 	"strings"
@@ -187,6 +188,16 @@ func ContainsSpecialChars(strings []string) bool {
 		}
 	}
 	return false
+}
+
+func ParseArtifUriForPath(serverApi, artifactUri string) string {
+	if serverApi == "" {
+		serverApi = util.ServerApi
+	}
+	fileName := path.Base(artifactUri)
+	artifactPath := strings.TrimSuffix(artifactUri, fileName)
+	artifactPath = strings.TrimPrefix(artifactPath, serverApi + "/storage")
+	return artifactPath
 }
 
 func SetLoggingLevel() slog.Level {

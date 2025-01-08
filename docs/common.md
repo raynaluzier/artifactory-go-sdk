@@ -213,6 +213,21 @@ Checks for the special characters that are disallowed by Artifactory in Properti
 | ture/false | Returns true if any of the strings contains special characters | bool |
 
 
+## ParseArtifUriForPath
+Takes in an Artifact URI, trims off the filename and server API / storage path and returns the '/repo/folder/path/'. Within the Artifactory post-processor plugin, this can be used in place of a target path value where the location of an existing artifact is used as the target location for a new artifact.
+
+#### Inputs
+| Name        | Description                                                           | Type   | Required |
+|-------------|-----------------------------------------------------------------------|--------|:--------:|
+| serverApi   | Server API address of the Artifactory server instance                 | string | TRUE     |
+| artifactUri | Artifact URI address of an existing image/artifact within Artifactory | string | TRUE     |
+
+#### Outputs
+| Name         | Description                                                            | Type   |
+|--------------|------------------------------------------------------------------------|--------|
+| artifactPath | Returns the '/repo/folder/path/' parsed from the provided artifact URI | string |
+
+
 ## SetLoggingLevel
 Uses the Global Variable `util.Logging` to set the desired logging level and returns the slog.Level equivalent value to be used by the desired logging handlers (LogTxtHandler or LogJsonHandler). If not specified, logging level defaults to INFO.
 

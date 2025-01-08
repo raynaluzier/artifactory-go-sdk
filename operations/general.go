@@ -370,7 +370,8 @@ func UploadFile(sourcePath, targetPath, fileSuffix string) (string, error) {
 			// Set target filename = filename + fileSuffix (if not blank)
 			if len(fileSuffix) != 0 || fileSuffix != "" {							// If a file suffix (like version, date, etc) was provided...
 				fileExt := path.Ext(fileName)										// Returns .[ext]
-				justName := strings.Trim(fileName, fileExt)							// Trim off extension
+				fmt.Println(fileName)
+				justName := strings.TrimSuffix(fileName, fileExt)							// Trim off extension
 				fileName = justName + separater + fileSuffix + fileExt
 			}   // If blank, then the original filename will be used
 			
