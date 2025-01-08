@@ -64,7 +64,7 @@ func GetImageDetails(serverApi, token, logLevel, artifName, ext string, kvProps 
 }
 
 // Must have Artifactory instance licensed at Pro or higher, access to create/remove repos and artifacts
-func SetupTest(serverApi, token, testArtifactPath, artifactSuffix string, kvProps []string) (string, error) {
+func SetupTest(serverApi, token, testArtifactPath, artifactSuffix string, kvProps []string, uploadArtifact bool) (string, error) {
 	// testArtifactPath is the full path to the artifact -> ex - c:\lab\test-artifact.txt
 	// testRepoPath is the target path to put the artifact in -> /test-packer-plugin
 
@@ -76,28 +76,32 @@ func SetupTest(serverApi, token, testArtifactPath, artifactSuffix string, kvProp
 	if err != nil {
 		strErr := fmt.Sprintf("%v\n", err)
 		common.LogTxtHandler().Error("Unable to create repo: " + strErr)
-		return "", err
+		return "Incomplete", err
 	}
 
-	// Upload test artifact to test repo
-	// Checks for ending slash on target repo path as part of this
-	downloadUri, err := operations.UploadFile(testArtifactPath, testRepoPath, artifactSuffix)
-	if err != nil {
-		strErr := fmt.Sprintf("%v\n", err)
-		common.LogTxtHandler().Error("Unable to get download URI: " + strErr)
-		return "", err
+	if uploadArtifact == true {
+		// Upload test artifact to test repo
+		// Checks for ending slash on target repo path as part of this
+		downloadUri, err := operations.UploadFile(testArtifactPath, testRepoPath, artifactSuffix)
+		if err != nil {
+			strErr := fmt.Sprintf("%v\n", err)
+			common.LogTxtHandler().Error("Unable to get download URI: " + strErr)
+			return "", err
+		}
+
+		artifactUri := common.SetArtifUriFromDownloadUri(downloadUri)
+
+		// Set properties on the test artifact
+		statusCode, err := operations.SetArtifactProps(artifactUri, kvProps)
+		if statusCode != "204" {
+			strErr := fmt.Sprintf("%v\n", err)
+			common.LogTxtHandler().Error("Error setting artifact properties: " + strErr)
+		}
+		return artifactUri, nil
+	} else {
+		return "Complete", nil
 	}
-
-	artifactUri := common.SetArtifUriFromDownloadUri(downloadUri)
-
-	// Set properties on the test artifact
-	statusCode, err := operations.SetArtifactProps(artifactUri, kvProps)
-	if statusCode != "204" {
-		strErr := fmt.Sprintf("%v\n", err)
-		common.LogTxtHandler().Error("Error setting artifact properties: " + strErr)
-	}
-
-	return artifactUri, nil
+	
 }
 
 func TeardownTest(serverApi, token string) (string) {
@@ -118,5 +122,48 @@ func TeardownTest(serverApi, token string) (string) {
 		return statusCode
 	} else {
 		return statusCode
+	}
+}
+
+func UploadArtifact(serverApi, token, sourcePath, targetPath, fileSuffix string) (string, string, error) {
+	util.ServerApi = serverApi
+	util.Token	   = token
+	var artifactUri string
+	common.LogTxtHandler().Debug("UPLOADING NEW ARTIFACT TO ARTIFACTORY...")
+
+	downloadUri, err := operations.UploadFile(sourcePath, targetPath, fileSuffix)
+	if err != nil {
+		strErr := fmt.Sprintf("%v\n", err)
+		common.LogTxtHandler().Error("Unable to upload artifact - " + strErr)
+		return "", "", err
+	} else {
+		artifactUri = common.SetArtifUriFromDownloadUri(downloadUri)
+	}
+
+	return downloadUri, artifactUri, nil
+}
+
+func SetProps(serverApi, token, artifUri string, kvProps []string) (string, error) {
+	util.ServerApi = serverApi
+	util.Token	   = token
+
+	common.LogTxtHandler().Debug("UPDATING PROPERTIES OF ARTIFACT...")
+
+	statusCode, err := operations.SetArtifactProps(artifUri, kvProps)
+	if statusCode == "204" {
+		props, err := operations.GetAllPropsForArtifact(artifUri)
+
+		if err != nil {
+			strErr := fmt.Sprintf("%v\n", err)
+			common.LogTxtHandler().Error("Unable to get artifact properties - " + strErr)
+			return "", err
+		}
+		fmt.Println(props)
+		return statusCode, nil
+
+	} else {
+		strErr := fmt.Sprintf("%v\n", err)
+		common.LogTxtHandler().Error("Unable to set artifact properties - " + strErr)
+		return "", err
 	}
 }
