@@ -34,7 +34,7 @@ Searches for artifacts by full or partial artifact name. The search is CASE INSE
 
 
 ## FilterListByFileType
-Filters a list of artifact URIs by desired file type. If no extension is provided, the default filter will be VMware Templates (.vmxt). If file extension provided doesn't include a leading '.', it will be added.
+Filters a list of artifact URIs by desired file type. If no extension is provided, the default filter will be VMware Templates (.vmtx). If file extension provided doesn't include a leading '.', it will be added.
 
 This function would primarily be used in conjunction with GetArtifactsByName as part of the artifact filtering process. 
 

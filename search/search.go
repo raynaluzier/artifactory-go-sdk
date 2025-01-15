@@ -162,16 +162,16 @@ func GetArtifactsByName(artifName string) ([]string, error) {
 
 func FilterListByFileType(ext string, listArtifacts []string) ([]string, error) {
 	// Filters list of artifact URIs by file type
-	// If no extension is provided, the default filter will be VMware Templates (.vmxt)
+	// If no extension is provided, the default filter will be VMware Templates (.vmtx)
 	var filteredList []string
 
 	common.LogTxtHandler().Info(">>> Filtering Artifact URIs by File Extension...")
 	common.LogTxtHandler().Info(">>>---> " + ext)
 
 	if ext == "" {
-		common.LogTxtHandler().Warn("*** No file type was specified. Using DEFAULT file type of '.vmxt' (VM Template).")
+		common.LogTxtHandler().Warn("*** No file type was specified. Using DEFAULT file type of '.vmtx' (VM Template).")
 		common.LogTxtHandler().Warn("*** To change this, include a desired file type.")
-		ext = ".vmxt"
+		ext = ".vmtx"
 	}
 
 	if len(listArtifacts) != 0 {
