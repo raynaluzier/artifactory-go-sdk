@@ -228,6 +228,34 @@ Takes in an Artifact URI, trims off the filename and server API / storage path a
 | artifactPath | Returns the '/repo/folder/path/' parsed from the provided artifact URI | string |
 
 
+## ParseArtifUriForFilename
+Takes in an Artifact URI and determines the associated filename.
+
+#### Inputs
+| Name        | Description                                                           | Type   | Required |
+|-------------|-----------------------------------------------------------------------|--------|:--------:|
+| artifactUri | Artifact URI address of an existing image/artifact within Artifactory | string | TRUE     |
+
+#### Outputs
+| Name      | Description                                                            | Type   |
+|-----------|------------------------------------------------------------------------|--------|
+| fileName  | Returns the 'filename.ext' parsed from the provided artifact URI       | string |
+
+
+## ParseFilenameForImageName
+Takes in the artifact's filename (filename.ext) and trims off the extension and returns just the name of the image without the file extension.
+
+#### Inputs
+| Name      | Description                                       | Type   | Required |
+|-----------|---------------------------------------------------|--------|:--------:|
+| fileName  | File name of the artifact with file extension     | string | TRUE     |
+
+#### Outputs
+| Name      | Description                    | Type   |
+|-----------|--------------------------------|--------|
+| imageName | Returns the name of the image  | string |
+
+
 ## SetLoggingLevel
 Uses the Global Variable `util.Logging` to set the desired logging level and returns the slog.Level equivalent value to be used by the desired logging handlers (LogTxtHandler or LogJsonHandler). If not specified, logging level defaults to INFO.
 

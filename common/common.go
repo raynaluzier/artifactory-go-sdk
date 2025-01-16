@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"runtime"
 	"strings"
@@ -198,6 +199,18 @@ func ParseArtifUriForPath(serverApi, artifactUri string) string {
 	artifactPath := strings.TrimSuffix(artifactUri, fileName)
 	artifactPath = strings.TrimPrefix(artifactPath, serverApi + "/storage")
 	return artifactPath
+}
+
+func ParseUriForFilename(artifactUri string) string {
+	// This can be the download or artifact URI
+	fileName := path.Base(artifactUri)
+	return fileName
+}
+
+func ParseFilenameForImageName(fileName string) string {
+	ext := filepath.Ext(fileName)
+	imageName := strings.TrimSuffix(fileName, ext)
+	return imageName
 }
 
 func SetLoggingLevel() slog.Level {
