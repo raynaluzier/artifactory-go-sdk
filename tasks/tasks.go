@@ -374,13 +374,16 @@ func DownloadArtifacts(serverApi, token, downloadUri, outputDir string) string {
 	common.LogTxtHandler().Debug("New Output Directory: " + newOutputDir)
 
 	util.OutputDir = newOutputDir          // Setting subdir as the new output directory
-	// TO DO: CHECK FOR DIR, IF NO EXIST, CREATE
-	err = os.Mkdir(newOutputDir, 0755)
-	if err != nil {
-		strErr := fmt.Sprintf("%v\n", err)
-		common.LogTxtHandler().Error("Error creating directory: " + newOutputDir + " - " + strErr)
-	} else {
-		common.LogTxtHandler().Info("Successfully created directory: " + newOutputDir)
+	// Check for output directory and create if it doesn't exist
+	_, err = os.Stat(newOutputDir)
+	if os.IsNotExist(err) {
+		err = os.Mkdir(newOutputDir, 0755)
+		if err != nil {
+			strErr := fmt.Sprintf("%v\n", err)
+			common.LogTxtHandler().Error("Error creating directory: " + newOutputDir + " - " + strErr)
+		} else {
+			common.LogTxtHandler().Info("Successfully created directory: " + newOutputDir)
+		}
 	}
 	
 	if ext == ".ova" {
