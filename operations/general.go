@@ -538,6 +538,8 @@ func GetArtifact(downloadUri string) (string, error) {
 }
 
 func CheckFileAndUpload(items []os.DirEntry, sourceDir, targetDir, fileName, imageName string) (string, error) {
+	// sourceDir ex: c:\\lab\\ or /lab/ - assumes ending slash
+	// targetDir ex: /repo-name/folder/ - assumes ending slash
 	var sourcePath, targetPath string
 	for _, item := range items {
 		if item.Name() == fileName {
@@ -559,6 +561,9 @@ func CheckFileAndUpload(items []os.DirEntry, sourceDir, targetDir, fileName, ima
 }
 
 func CheckFileAndDownload(checkFile, downloadPath, task string) (string, error) {
+	// checkFile - filename with extention
+	// downloadPath - parsed Artifactory path to artifact without the artifact file name
+	// task - what file check we are performing
 	var resultMsg string
 	statusCode, err := GetArtifact(downloadPath + checkFile)
 	if statusCode == "200" {
@@ -575,6 +580,10 @@ func CheckFileAndDownload(checkFile, downloadPath, task string) (string, error) 
 }
 
 func CheckFileLoopAndDownload(imageName, downloadPath, extString, task string) (string, error) {
+	// imageName - name of image we'll use to construct the filename with
+	// downloadPath - parsed Artifactory path to artifact without the artifact file name
+	// extString - vSphere-based disk file extension - ex: ".vmdk", "-ctk.vmdk", "-flat.vmdk"
+	// task - what file check we are performing
 	var resultMsg, strI string
 	for i := 1; i < 15; i++ {   // allowing possibility of up to 15 disk files
 		strI = strconv.Itoa(i)

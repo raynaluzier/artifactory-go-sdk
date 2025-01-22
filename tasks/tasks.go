@@ -149,7 +149,8 @@ func UploadArtifact(serverApi, token, sourcePath, targetPath, fileSuffix string)
 }
 
 func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDir, fileSuffix string) (string) {
-	// We need to also account for multiple files here, depending on OVA, OVF, or VMTX
+	// sourceDir ex: c:\\lab or /lab - We'll check for/add ending slash if needed
+	// targetDir ex: /repo-name/folder - We'll check for/add ending slash if needed
 	util.ServerApi = serverApi
 	util.Token	   = token
 	var fileName string
