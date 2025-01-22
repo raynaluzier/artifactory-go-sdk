@@ -11,6 +11,7 @@ import (
 	"path"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/raynaluzier/artifactory-go-sdk/common"
@@ -287,7 +288,7 @@ func RetrieveArtifact(downloadUri string) (string, error) {
 	} else {
 		err := errors.New("No download URI was provided. Unable to download the artifact without the download URI.")
 		common.LogTxtHandler().Error("No download URI was provided. Unable to download the artifact without the download URI.")
-		return "File download failed.", err
+		return "Error: File download failed.", err
 	}
 
 	return "Completed file download", nil
@@ -393,7 +394,7 @@ func UploadFile(sourcePath, targetPath, fileSuffix string) (string, error) {
 			} else {
 				defer response.Body.Close()
 				body, err := io.ReadAll(response.Body)
-				common.LogTxtHandler().Info("REQUEST RESPONSE: " + string(body))
+				common.LogTxtHandler().Debug("REQUEST RESPONSE: " + string(body))
 		
 				var jsonData *artifJson
 				err = json.Unmarshal(body, &jsonData)
@@ -491,4 +492,105 @@ func GetLatestArtifactFromList(list []string) (string, error) {
 	latestItem = dateMap[latest]["artifact"]
 	common.LogTxtHandler().Info("LATEST ITEM: " + latestItem)
 	return latestItem, nil
+}
+
+func GetArtifact(downloadUri string) (string, error) {
+	// Checks to see if artifact exists
+	bearer := common.SetBearer(util.Token)
+	common.LogTxtHandler().Info(">>> Getting artifact: " + downloadUri)
+
+	if downloadUri != "" {
+		request, err = http.NewRequest("GET", downloadUri, nil)
+		common.LogTxtHandler().Debug("REQUEST: Sending 'GET' request to: " + downloadUri)
+		request.Header.Add("Authorization", bearer)
+
+		client := &http.Client{}
+		response, err := client.Do(request)
+		if err != nil {
+			strErr := fmt.Sprintf("%v\n", err)
+			common.LogTxtHandler().Error("Error on response. " + strErr)
+			return "", err
+		} else {
+			defer response.Body.Close()
+
+			// If the request is successful, it will simply return a status code of 200
+			if response.StatusCode == 200 {
+				common.LogTxtHandler().Info("Request completed successfully")
+				statusCode = "200"
+			} else {
+				// If the request fails, it will return a status code of 404
+				common.LogTxtHandler().Info("Artifact not found.")
+				statusCode = "404"
+			}
+		}
+	} else {
+		err := errors.New("Unable to get artifact without artifact's download URI.")
+		common.LogTxtHandler().Error("No download URI provided. Unable to get artifact without artifact's download URI.")
+		return "", err
+	}
+
+	if err != nil {
+		common.LogTxtHandler().Error("Unable to parse URL")
+		return "", err
+	}
+
+	return statusCode, nil
+}
+
+func CheckFileAndUpload(items []os.DirEntry, sourceDir, targetDir, fileName, imageName string) (string, error) {
+	var sourcePath, targetPath string
+	for _, item := range items {
+		if item.Name() == fileName {
+			sourcePath = sourceDir + fileName
+			targetPath = targetDir + imageName + "/"
+			suff := ""
+			downloadUri, err := UploadFile(sourcePath, targetPath, suff)
+			if err != nil {
+				strErr := fmt.Sprintf("%v\n", err)
+				common.LogTxtHandler().Error("Error uploading: " + fileName + " to: " + targetPath + " - " + strErr)
+				return "Failed", err
+			} else {
+				common.LogTxtHandler().Info("File: " + fileName + " uploaded.")
+				common.LogTxtHandler().Info("Download URI: " + downloadUri)
+			}
+		}
+	}
+	return "Success", nil
+}
+
+func CheckFileAndDownload(checkFile, downloadPath, task string) (string, error) {
+	var resultMsg string
+	statusCode, err := GetArtifact(downloadPath + checkFile)
+	if statusCode == "200" {
+		// If we found the artifact, download it...
+		resultMsg, err = RetrieveArtifact(downloadPath + checkFile)
+		if err != nil {
+			common.LogTxtHandler().Error(resultMsg)
+			return "Failed", err
+		}
+	} else {
+		common.LogTxtHandler().Info("End of " + task)
+	}
+	return "Success", nil
+}
+
+func CheckFileLoopAndDownload(imageName, downloadPath, extString, task string) (string, error) {
+	var resultMsg, strI string
+	for i := 1; i < 15; i++ {   // allowing possibility of up to 15 disk files
+		strI = strconv.Itoa(i)
+		checkFile := imageName + "_" + strI + extString
+		statusCode, err := GetArtifact(downloadPath + checkFile)
+		if statusCode == "200" {
+			// If we found the artifact, download it...
+			resultMsg, err = RetrieveArtifact(downloadPath + checkFile)
+			if err != nil {
+				common.LogTxtHandler().Error(resultMsg)
+				return "Failed", err
+			}
+		} else {
+			common.LogTxtHandler().Info("End of " + task)
+			break
+		}
+	}
+	return "Success", nil
 }

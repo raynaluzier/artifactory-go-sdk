@@ -1,13 +1,13 @@
 package main
 
 import (
-	_ "fmt"
+	"fmt"
 	"os"
 
 	_ "github.com/raynaluzier/artifactory-go-sdk/common"
 	_ "github.com/raynaluzier/artifactory-go-sdk/operations"
 	_ "github.com/raynaluzier/artifactory-go-sdk/search"
-	_ "github.com/raynaluzier/artifactory-go-sdk/tasks"
+	"github.com/raynaluzier/artifactory-go-sdk/tasks"
 	"github.com/raynaluzier/artifactory-go-sdk/util"
 )
 
@@ -25,7 +25,19 @@ func main(){
 	util.Logging   = logLevel
 	//util.OutputDir = outputDir
 	// -------------------------------------------------------------------------
-	
-	
+	outputDir := "c:\\lab"
+	//downloadUri := "https://riverpointtechnology.jfrog.io/artifactory/rpt-libs-local/image9012/image9012.ova"
+	//downloadUri := "https://riverpointtechnology.jfrog.io/artifactory/rpt-libs-local/image5678/image5678.ovf"
+	downloadUri := "https://riverpointtechnology.jfrog.io/artifactory/rpt-libs-local/image1234/image1234.vmtx"
+	//fmt.Println(operations.GetArtifact(downloadUri))
+
+	fmt.Println(tasks.DownloadArtifacts(serverApi, token, downloadUri, outputDir))
+
+	//imageType := "vmtx"
+	//imageName := "image1234"
+	//sourceDir := "c:\\lab\\" + imageName
+	//targetDir := "/rpt-libs-local"
+	//fileSuffix := ""
+	//fmt.Println(tasks.UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDir, fileSuffix))
 
 }
