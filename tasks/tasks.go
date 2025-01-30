@@ -156,6 +156,7 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 	var fileName string
 	var err error
 	var fileTypes []string
+	imageType = strings.ToLower(imageType)
 
 	common.LogTxtHandler().Debug("UPLOADING NEW ARTIFACT TO ARTIFACTORY...")
 	newSourceDir := common.CheckAddSlashToPath(sourceDir)  // makes sure ending slash exists
@@ -356,6 +357,7 @@ func DownloadArtifacts(serverApi, token, downloadUri, outputDir string) string {
 	var strI string
 	var extString string
 	var task string
+	downloadUri = strings.ToLower(downloadUri)
 
 	fileName 	 := common.ParseUriForFilename(downloadUri)
 	downloadPath := strings.TrimSuffix(downloadUri, fileName) // still has slash
@@ -493,6 +495,6 @@ func DownloadArtifacts(serverApi, token, downloadUri, outputDir string) string {
 	// They are not necessary for our activities. 
 	
 	return "Completed"
-	// Option to move here?
+	// Maybe future option to move here?
 	// should convert AFTER copy - files are smaller, fewer
 }

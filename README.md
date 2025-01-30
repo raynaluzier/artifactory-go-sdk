@@ -74,8 +74,3 @@ A reference outline of each function's behavior and any special notes can be fou
 - [Search](https://github.com/raynaluzier/artifactory-go-sdk/blob/main/docs/search.md)
 
 - [Tasks](https://github.com/raynaluzier/artifactory-go-sdk/blob/main/docs/tasks.md)
-
-
-## How to Use
-
-## Unit Testing
