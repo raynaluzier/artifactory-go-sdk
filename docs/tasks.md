@@ -72,7 +72,7 @@ As part of the Artifactory plugin acceptance test, this function takes in the Ar
 ## UploadArtifact
 Takes in the Artifactory server's API address, Artifactory Identity token, source path of the new artifact, target path within Artifactory where the new artifact should be uploaded to, and optionally a file suffix if using the same artifact base name and needing to make it unique (ex: version, date, etc separated by '-'). The Global Variables `util.ServerApi` and `util.Token` are set by the function's inputs so these values can be used by the subsequent function calls without having to pass them in every time.
 
-Once the variables are set, the file is uploaded from the provided source path (`c:\\lab\artifact.ext` or `/lab/artifact.ext` to the target path (`/repo/folder/path`). If successful, the download URI of the returned from this operation. Next, the artifact URI is derived from the download URI. Both the download URI and artifact URI are returned
+Once the variables are set, the file is uploaded from the provided source path (`c:\\lab\\artifact.ext` or `/lab/artifact.ext` to the target path (`/repo/folder/path`). If successful, the download URI of the returned from this operation. Next, the artifact URI is derived from the download URI. Both the download URI and artifact URI are returned
 
 #### Inputs
 | Name        | Description                                                                     | Type     | Required |
@@ -88,6 +88,32 @@ Once the variables are set, the file is uploaded from the provided source path (
 |--------------|-------------------------------------------------------------------------------|----------|
 | downloadUri  | Download URI address used to retrieve/download the artifact from Artifactory  | string   |
 | artifactUri  | Artifact URI address of the artifact and it's details within Artifactory      | string   |
+
+
+## UploadArtifacts
+Takes in the Artifactory server's API address, Artifactory Identity token, image type (OVA, OVF, or VMTX), image name, source path of the new artifact (ex: c:\\lab or /lab), target path within Artifactory where the new artifact should be uploaded to (ex: /repo/opt-folder/), and optionally a file suffix if using the same artifact base name and needing to make it unique (ex: version, date, etc separated by '-'). 
+
+The Global Variables `util.ServerApi` and `util.Token` are set by the function's inputs so these values can be used by the subsequent function calls without having to pass them in every time.
+
+Once the variables are set, the image type and image name are evaluated to determined the expected files that should exist. Disk files are evaluated for up to 15 disks. 
+
+The files are validated against the source directory and if they exist, they are uploaded from the provided source path (`c:\\lab` or `/lab` to the target path (`/repo/folder/path`) into a folder based on the image name (so /repo/opt-folder/image1234/image1234.ova, etc.). As each file is successfully uploaded, the download URI is output in the logs. Upon completion, a string-based status of the operation is returned.
+
+#### Inputs
+| Name        | Description                                                                                                      | Type     | Required |
+|-------------|------------------------------------------------------------------------------------------------------------------|----------|:--------:|
+| serverApi   | URL to the target Artifactory server; format: `server.com:8081/artifactory/api`                                  | string   | TRUE     |
+| token       | Identity Token for the Artifactory account executing the function calls                                          | string   | TRUE     |
+| imageType   | Type of image to be uploaded (OVA, OVF, or VMTX are supported)                                                   | string   | TRUE     |
+| imageName   | Base name of the image (ex: win2022)                                                                             | string   | TRUE     |
+| sourceDir   | Directory path (without any filename) where the image will be sourced from; **Needs proper escape chars          | string   | TRUE     |
+| targetDir   | Target repo/path of destination for image (files will automatically be placed in their own image-based folder)   | string   | TRUE     |
+| fileSuffix  | Placeholder for distinguishing values like dates, versions, etc                                                  | string   | FALSE    |
+
+#### Outputs
+| Name      | Description                               | Type     |
+|-----------|-------------------------------------------|----------|
+| (result)  | Resulting status string of the operation  | string   |
 
 
 ## SetProps
@@ -107,3 +133,25 @@ Once the variables are set, the artifact is assigned the new properties and a st
 | Name       | Description                                                           | Type     |
 |------------|-----------------------------------------------------------------------|----------|
 | statusCode | Returns status code "200" if teardown is successful, or "400" if not  | string   |
+
+
+## DownloadArtifacts
+Takes in the Artifactory server's API address, Artifactory Identity token, download URI for the primary image file (OVA, OVF, or VMTX), and a desired output directory. If the image is going to be imported into a vCenter instance as part of the build process, then the output directory should be a datastore path available to the system where Packer is running, such as through a share. 
+
+The Global Variables `util.ServerApi`, `util.Token`, and `util.Output` are set by the function's inputs so these values can be used by the subsequent function calls without having to pass them in every time.
+
+Once the variables are set, the download URI is parsed to determine the primary image's file name, extension, and image name. A folder will be created on the output directory named based on the image name. Next, the image type and image name are evaluated to determined the expected files that should exist. Disk files are evaluated for up to 15 disks. Each expected file is checked against Artifactory to ensure it exists, and if so, will be downloaded to the image's folder in the specified output directory. Shoud any of the files not be found, the process will exit with an error.
+
+#### Inputs
+| Name        | Description                                                                     | Type     | Required |
+|-------------|---------------------------------------------------------------------------------|----------|:--------:|
+| serverApi   | URL to the target Artifactory server; format: `server.com:8081/artifactory/api` | string   | TRUE     |
+| token       | Identity Token for the Artifactory account executing the function calls         | string   | TRUE     |
+| downloadUri | Download URI address of the primary image artifact (type: OVA, OVF, or VMTX)    | string   | TRUE     |
+| outputDir   | Target directory where the downloaded files should be placed*                   | string   | TRUE     |
+**If the image is going to be imported into a vCenter instance as part of the build process, then the output directory should be a datastore path available to the system where Packer is running, such as through a share.** 
+
+#### Outputs
+| Name      | Description                               | Type     |
+|-----------|-------------------------------------------|----------|
+| (result)  | Resulting status string of the operation  | string   |

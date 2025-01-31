@@ -123,3 +123,78 @@ Takes in list of artifact URIs, gets the created date for each of them, and retu
 |-------------|---------------------------------------|----------|
 | latestItem  | Artifact with latest 'create' date    | string   |
 | err         | nil unless error; then returns error  | error    |
+
+
+## GetArtifact
+Takes in the download URI of an artifact and makes a 'GET' REST API call against that URI. A status code of "200" is returned if it exists or "404" if it doesn't.
+
+#### Inputs
+| Name        | Description                                           | Type    | Required |
+|-------------|-------------------------------------------------------|---------|:--------:|
+| downloadUri | The artifact's download address within Artifactory    | string  | TRUE     |
+
+#### Outputs
+| Name        | Description                                           | Type     |
+|-------------|-------------------------------------------------------|----------|
+| statusCode  | Result of the GET call to the download URI address    | string   |
+
+
+## CheckFileAndUpload
+Takes in a list of files pulled from the source directory (collected by the parent function, `UploadArtifacts`); for each item name in the list, checks it against the target filename. If the file exists, the filename is appended to the source path. The target path is updated to include the image name as the target folder. Then the file is uploaded to Artifactory. If successful, the artifact's download URI is output and the string-based result of the operation is returned as "Success".
+
+This supports and is called by the `UploadArtifacts` function.
+
+#### Inputs
+| Name      | Description                                                  | Type           | Required |
+|-----------|--------------------------------------------------------------|----------------|:--------:|
+| items     | List of directory files read from source                     | []os.DirEntry  | TRUE     |
+| sourceDir | Source directory that contains the files to upload           | string         | TRUE     |
+| targetDir | Target Artifactory path where files will be uploaded to      | string         | TRUE     |
+| fileName  | File to be checked that it exists and uploaded               | string         | TRUE     |
+| imageName | Name of the image; used as a folder to place the image files | string         | TRUE     |
+
+#### Outputs
+| Name     | Description                                                            | Type     |
+|----------|------------------------------------------------------------------------|----------|
+| (result) | String result of either "Failed" or "Success" at the upload operation  | string   |
+
+
+## CheckFileAndDownload
+Takes the Artifactory artifact path (ex: /repo/folder) and image filename with extension, then does a 'GET' REST API call to Artifactory for the item. If the file is found, a status code of "200" is returned and the artifact is downloaded (it uses the output directory set as a global variable). Then the function returns a string result of "Success" back to the calling function if the download completed without error. Otherwise, "Failed" is returned.
+
+This supports and is called by the `DownloadArtifacts` function.
+
+#### Inputs
+| Name         | Description                                                           | Type    | Required |
+|--------------|-----------------------------------------------------------------------|---------|:--------:|
+| checkFile    | The filename with extension we are checking                           | string  | TRUE     |
+| downloadPath | Parsed Artifactory path to the artifact without the artifact filename | string  | TRUE     |
+| task         | What vSphere disk file check we are performing                        | string  | TRUE     |
+
+#### Outputs
+| Name     | Description                                                            | Type     |
+|----------|------------------------------------------------------------------------|----------|
+| (result) | String result of either "Failed" or "Success" at the upload operation  | string   |
+
+
+## CheckFileLoopAndDownload
+There are several vSphere disk file types that may exist as part of a VM Template, such as .vmdk, -ctk.vmdk, -flat.vmdk. There are numbered and unnumbered versions of all of these files that may exist as well, depending on the number of disks that are attached to the template. The number of disks can vary from image to image. This function will form an expected disk file name to check for with a disk number that increments with each pass to a max of 15 (i.e. we're accounting for the possibility of a max of 15 attached disks to the template).
+
+The disk file name is appended to the download path to form a URI in Artifactory and a 'GET' REST API call is done against the formed URI to see if the file exists in Artifactory. If the file is found, a status code of "200" is returned and the artifact is downloaded (it uses the output directory set as a global variable). Then the function returns a string result of "Success" back to the calling function if the download completed without error. Otherwise, "Failed" is returned.
+
+If, as the disk number increments and is checked, that numbered disk file isn't found, we assume that we've reached the end of the number of disks that are attached to the VM Template and the process breaks.
+
+This supports and is called by the `DownloadArtifacts` function. 
+
+#### Inputs
+| Name         | Description                                                           | Type    | Required |
+|--------------|-----------------------------------------------------------------------|---------|:--------:|
+| imageName    | Name of the image we'll use to construct the filename with            | string  | TRUE     |
+| downloadPath | Parsed Artifactory path to the artifact without the artifact filename | string  | TRUE     |
+| extString    | vSphere-based disk file extenison; ex: .vmdk, -ctk.vmdk, -flat.vmdk   | string  | TRUE     |
+| task         | What vSphere disk file check we are performing                        | string  | TRUE     |
+
+#### Outputs
+| Name        | Description                                           | Type     |
+|-------------|-------------------------------------------------------|----------|
+| statusCode  | Result of the GET call to the download URI address    | string   |

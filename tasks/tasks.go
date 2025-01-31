@@ -149,6 +149,9 @@ func UploadArtifact(serverApi, token, sourcePath, targetPath, fileSuffix string)
 }
 
 func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDir, fileSuffix string) (string) {
+	// Image files will placed in a folder named after the image, so no need to define a folder specifically for the image
+	// targetDir --> /repo/ --> files will be in path: /repo/image1234/image1234.ova, for example
+
 	// sourceDir ex: c:\\lab or /lab - We'll check for/add ending slash if needed
 	// targetDir ex: /repo-name/folder - We'll check for/add ending slash if needed
 	util.ServerApi = serverApi
@@ -158,32 +161,17 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 	var fileTypes []string
 	imageType = strings.ToLower(imageType)
 
-	common.LogTxtHandler().Debug("UPLOADING NEW ARTIFACT TO ARTIFACTORY...")
-	newSourceDir := common.CheckAddSlashToPath(sourceDir)  // makes sure ending slash exists
-	newTargetDir := common.CheckAddSlashToPath(targetDir)
-	items, _ := os.ReadDir(sourceDir)
+	if imageName != "" && sourceDir != "" && targetDir != "" {
+		common.LogTxtHandler().Debug("UPLOADING NEW ARTIFACT TO ARTIFACTORY...")
+		newSourceDir := common.CheckAddSlashToPath(sourceDir)  // makes sure ending slash exists
+		newTargetDir := common.CheckAddSlashToPath(targetDir)
+		items, _ := os.ReadDir(sourceDir)
 
-	if imageType == "ova" {
-		if fileSuffix != "" {
-			fileName = imageName + "-" + fileSuffix + ".ova"
-		} else {
-			fileName = imageName + ".ova"
-		}
-
-		result, err := operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
-		if err != nil {
-			strErr := fmt.Sprintf("%v\n", err)
-			common.LogTxtHandler().Error(result + " - " + strErr)
-		}
-
-
-	} else if imageType == "ovf" {
-	    fileTypes = []string{".ovf", ".mf"}
-		for _, ft := range fileTypes {
+		if imageType == "ova" {
 			if fileSuffix != "" {
-				fileName = imageName + "-" + fileSuffix + ft
+				fileName = imageName + "-" + fileSuffix + ".ova"
 			} else {
-				fileName = imageName + ft
+				fileName = imageName + ".ova"
 			}
 
 			result, err := operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
@@ -191,130 +179,159 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 				strErr := fmt.Sprintf("%v\n", err)
 				common.LogTxtHandler().Error(result + " - " + strErr)
 			}
-		}
+			return "End of upload process"
 
-		// Search and upload related OVF-based disk files
-	 	for i := 1; i < 15; i++ {
-			strI := strconv.Itoa(i)
+		} else if imageType == "ovf" {
+			fileTypes = []string{".ovf", ".mf"}
+			for _, ft := range fileTypes {
+				if fileSuffix != "" {
+					fileName = imageName + "-" + fileSuffix + ft
+				} else {
+					fileName = imageName + ft
+				}
+
+				result, err := operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
+				if err != nil {
+					strErr := fmt.Sprintf("%v\n", err)
+					common.LogTxtHandler().Error(result + " - " + strErr)
+				}
+			}
+
+			// Search and upload related OVF-based disk files
+			for i := 1; i < 15; i++ {
+				strI := strconv.Itoa(i)
+				if fileSuffix != "" {
+					fileName = imageName + "-" + fileSuffix + "-disk-" + strI + ".vmdk"
+				} else {
+					fileName = imageName + "-disk-" + strI + ".vmdk"
+				}
+
+				result, err := operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
+				if err != nil {
+					strErr := fmt.Sprintf("%v\n", err)
+					common.LogTxtHandler().Error(result + " - " + strErr)
+				}
+			}
+			return "End of upload process"
+		} else if imageType == "vmtx" {
+			var result string
+			fileTypes = []string{".nvram", ".vmsd", ".vmtx", ".vmxf"}
+			for _, ft := range fileTypes {
+				if fileSuffix != "" {
+					fileName = imageName + "-" + fileSuffix + ft
+				} else {
+					fileName = imageName + ft
+				}
+
+				result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
+				if err != nil {
+					strErr := fmt.Sprintf("%v\n", err)
+					common.LogTxtHandler().Error(result + " - " + strErr)
+				}
+			}
+
+			// Search and upload non-numbered virtual disk file
 			if fileSuffix != "" {
-				fileName = imageName + "-" + fileSuffix + "-disk-" + strI + ".vmdk"
+				fileName = imageName + "-" + fileSuffix + ".vmdk"
 			} else {
-				fileName = imageName + "-disk-" + strI + ".vmdk"
+				fileName = imageName + ".vmdk"
 			}
-
-			result, err := operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
-			if err != nil {
-				strErr := fmt.Sprintf("%v\n", err)
-				common.LogTxtHandler().Error(result + " - " + strErr)
-			}
-		}
-	} else if imageType == "vmtx" {
-		var result string
-		fileTypes = []string{".nvram", ".vmsd", ".vmtx", ".vmxf"}
-		for _, ft := range fileTypes {
-			if fileSuffix != "" {
-				fileName = imageName + "-" + fileSuffix + ft
-			} else {
-				fileName = imageName + ft
-			}
-
 			result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
 			if err != nil {
 				strErr := fmt.Sprintf("%v\n", err)
 				common.LogTxtHandler().Error(result + " - " + strErr)
 			}
-		}
 
-		// Search and upload non-numbered virtual disk file
-		if fileSuffix != "" {
-			fileName = imageName + "-" + fileSuffix + ".vmdk"
+			// Search and upload numbered disk files
+			for i := 1; i < 15; i++ {
+				strI := strconv.Itoa(i)
+				if fileSuffix != "" {
+					fileName = imageName + "-" + fileSuffix + "_" + strI + ".vmdk"
+				} else {
+					fileName = imageName + "_" + strI + ".vmdk"
+				}
+
+				result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
+				if err != nil {
+					strErr := fmt.Sprintf("%v\n", err)
+					common.LogTxtHandler().Error(result + " - " + strErr)
+				}
+			}
+
+			// Search and upload -ctk disk files ----------------------------------->
+			// Search and upload non-numbered virtual disk file
+			if fileSuffix != "" {
+				fileName = imageName + "-" + fileSuffix + "-ctk.vmdk"
+			} else {
+				fileName = imageName + "-ctk.vmdk"
+			}
+			result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
+			if err != nil {
+				strErr := fmt.Sprintf("%v\n", err)
+				common.LogTxtHandler().Error(result + " - " + strErr)
+			}
+
+			// Search and upload numbered -ctk disk files
+			for i := 1; i < 15; i++ {
+				strI := strconv.Itoa(i)
+				if fileSuffix != "" {
+					fileName = imageName + "-" + fileSuffix + "_" + strI + "-ctk.vmdk"
+				} else {
+					fileName = imageName + "_" + strI + "-ctk.vmdk"
+				}
+
+				result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
+				if err != nil {
+					strErr := fmt.Sprintf("%v\n", err)
+					common.LogTxtHandler().Error(result + " - " + strErr)
+				}
+			}
+			
+			// Search and upload -flat disk files ----------------------------------->
+			// Search and upload non-numbered virtual disk file
+			if fileSuffix != "" {
+				fileName = imageName + "-" + fileSuffix + "-flat.vmdk"
+			} else {
+				fileName = imageName + "-flat.vmdk"
+			}
+			result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
+			if err != nil {
+				strErr := fmt.Sprintf("%v\n", err)
+				common.LogTxtHandler().Error(result + " - " + strErr)
+			}
+
+			// Search and upload numbered -flat disk files
+			for i := 1; i < 15; i++ {
+				strI := strconv.Itoa(i)
+				if fileSuffix != "" {
+					fileName = imageName + "-" + fileSuffix + "_" + strI + "-flat.vmdk"
+				} else {
+					fileName = imageName + "_" + strI + "-flat.vmdk"
+				}
+
+				result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
+				if err != nil {
+					strErr := fmt.Sprintf("%v\n", err)
+					common.LogTxtHandler().Error(result + " - " + strErr)
+				}
+			}
+			return "End of upload process"
 		} else {
-			fileName = imageName + ".vmdk"
-		}
-		result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
-		if err != nil {
-			strErr := fmt.Sprintf("%v\n", err)
-			common.LogTxtHandler().Error(result + " - " + strErr)
-		}
-
-		// Search and upload numbered disk files
-		for i := 1; i < 15; i++ {
-			strI := strconv.Itoa(i)
-			if fileSuffix != "" {
-				fileName = imageName + "-" + fileSuffix + "_" + strI + ".vmdk"
+			common.LogTxtHandler().Error("Unsupported or blank image type. Supported image types are OVA, OVF, and VMTX.")
+			if imageType != "" {
+				return "Unsupported image type"
 			} else {
-				fileName = imageName + "_" + strI + ".vmdk"
-			}
-
-			result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
-			if err != nil {
-				strErr := fmt.Sprintf("%v\n", err)
-				common.LogTxtHandler().Error(result + " - " + strErr)
-			}
-		}
-
-		// Search and upload -ctk disk files ----------------------------------->
-		// Search and upload non-numbered virtual disk file
-		if fileSuffix != "" {
-			fileName = imageName + "-" + fileSuffix + "-ctk.vmdk"
-		} else {
-			fileName = imageName + "-ctk.vmdk"
-		}
-		result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
-		if err != nil {
-			strErr := fmt.Sprintf("%v\n", err)
-			common.LogTxtHandler().Error(result + " - " + strErr)
-		}
-
-		// Search and upload numbered -ctk disk files
-		for i := 1; i < 15; i++ {
-			strI := strconv.Itoa(i)
-			if fileSuffix != "" {
-				fileName = imageName + "-" + fileSuffix + "_" + strI + "-ctk.vmdk"
-			} else {
-				fileName = imageName + "_" + strI + "-ctk.vmdk"
-			}
-
-			result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
-			if err != nil {
-				strErr := fmt.Sprintf("%v\n", err)
-				common.LogTxtHandler().Error(result + " - " + strErr)
-			}
-		}
-		
-		// Search and upload -flat disk files ----------------------------------->
-		// Search and upload non-numbered virtual disk file
-		if fileSuffix != "" {
-			fileName = imageName + "-" + fileSuffix + "-flat.vmdk"
-		} else {
-			fileName = imageName + "-flat.vmdk"
-		}
-		result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
-		if err != nil {
-			strErr := fmt.Sprintf("%v\n", err)
-			common.LogTxtHandler().Error(result + " - " + strErr)
-		}
-
-		// Search and upload numbered -flat disk files
-		for i := 1; i < 15; i++ {
-			strI := strconv.Itoa(i)
-			if fileSuffix != "" {
-				fileName = imageName + "-" + fileSuffix + "_" + strI + "-flat.vmdk"
-			} else {
-				fileName = imageName + "_" + strI + "-flat.vmdk"
-			}
-
-			result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
-			if err != nil {
-				strErr := fmt.Sprintf("%v\n", err)
-				common.LogTxtHandler().Error(result + " - " + strErr)
+				return "Image type is blank"
 			}
 		}
 	} else {
-		common.LogTxtHandler().Error("Unsupported or blank image type. Supported image types are OVA, OVF, and VMTX.")
-		return "Unsupported image type"
+		common.LogTxtHandler().Error("One or more required inputs have not been provided.")
+		common.LogTxtHandler().Error("IMAGE TYPE: " + imageType)
+		common.LogTxtHandler().Error("IMAGE NAME: " + imageName)
+		common.LogTxtHandler().Error("SOURCE DIR: " + sourceDir)
+		common.LogTxtHandler().Error("TARGET DIR:" + targetDir)
+		return "Missing required inputs"
 	}
-	return "End of upload process"
 }
 
 func SetProps(serverApi, token, artifUri string, kvProps []string) (string, error) {
@@ -343,8 +360,12 @@ func SetProps(serverApi, token, artifUri string, kvProps []string) (string, erro
 }
 
 func DownloadArtifacts(serverApi, token, downloadUri, outputDir string) string {
-	// Takes in download URI that corresponds to OVA, OVF, or VMTX file; 
+	// Takes in download URI that corresponds to OVA, OVF, or VMTX file in Artifactory; 
 	// Will then determine other expected associated artifacts and download those as well
+		// Appends an incrementing numeric value (string; up to 15) to disk type and checks for existance of disk file
+		// At first occurrance of the file not being found, the check breaks and moves on
+	// ** If planning to import image file into vCenter, make the output directory the destination datastore
+
 	util.ServerApi = serverApi
 	util.Token = token
 	
@@ -357,144 +378,166 @@ func DownloadArtifacts(serverApi, token, downloadUri, outputDir string) string {
 	var strI string
 	var extString string
 	var task string
-	downloadUri = strings.ToLower(downloadUri)
 
-	fileName 	 := common.ParseUriForFilename(downloadUri)
-	downloadPath := strings.TrimSuffix(downloadUri, fileName) // still has slash
-	ext 		 := filepath.Ext(fileName)
-	imageName    := common.ParseFilenameForImageName(fileName)
+	if downloadUri != "" && outputDir != "" {
+		downloadUri   = strings.ToLower(downloadUri)
+		fileName 	 := common.ParseUriForFilename(downloadUri)
+		downloadPath := strings.TrimSuffix(downloadUri, fileName) // still has slash
+		ext 		 := filepath.Ext(fileName)
+		imageName    := common.ParseFilenameForImageName(fileName)
 
-	common.LogTxtHandler().Debug("File Name: " + fileName)
-	common.LogTxtHandler().Debug("Download Path: " + downloadPath)
-	common.LogTxtHandler().Debug("Extension of File: " + ext)
-	common.LogTxtHandler().Debug("Image Name: " + imageName)
+		common.LogTxtHandler().Debug("File Name: " + fileName)
+		common.LogTxtHandler().Debug("Download Path: " + downloadPath)
+		common.LogTxtHandler().Debug("Extension of File: " + ext)
+		common.LogTxtHandler().Debug("Image Name: " + imageName)
 
-	// Create imageName-based folder under Output Dir to house file downloads
-	outputDir      = common.CheckAddSlashToPath(outputDir)
-	newOutputDir  := outputDir + imageName
-	common.LogTxtHandler().Debug("Original Output Directory: " + outputDir)
-	common.LogTxtHandler().Debug("New Output Directory: " + newOutputDir)
+		// Create imageName-based folder under Output Dir to house file downloads
+		outputDir      = common.CheckAddSlashToPath(outputDir)
+		newOutputDir  := outputDir + imageName
+		common.LogTxtHandler().Debug("Original Output Directory: " + outputDir)
+		common.LogTxtHandler().Debug("New Output Directory: " + newOutputDir)
 
-	util.OutputDir = newOutputDir          // Setting subdir as the new output directory
-	// Check for output directory and create if it doesn't exist
-	_, err = os.Stat(newOutputDir)
-	if os.IsNotExist(err) {
-		err = os.Mkdir(newOutputDir, 0755)
-		if err != nil {
-			strErr := fmt.Sprintf("%v\n", err)
-			common.LogTxtHandler().Error("Error creating directory: " + newOutputDir + " - " + strErr)
-		} else {
-			common.LogTxtHandler().Info("Successfully created directory: " + newOutputDir)
-		}
-	}
-	
-	if ext == ".ova" {
-		resultMsg, err = operations.RetrieveArtifact(downloadUri)
-
-		if err != nil {
-			common.LogTxtHandler().Error(resultMsg) // Will contain "Error" with additional info
-		}
-	} else if ext == ".ovf" {
-		// Download OVF and assoc files
-		downloadList = []string{".ovf", ".mf"}
-		for _, item := range downloadList {
-			artifactPath = downloadPath + imageName + item // builds URI path for each expected file type
-			resultMsg, err = operations.RetrieveArtifact(artifactPath)
-		}
-		if err != nil {
-			common.LogTxtHandler().Error("Download OVF files: " + resultMsg) // Will contain "Error" with additional info
-		} else {
-			common.LogTxtHandler().Info("Download OVF files: " + resultMsg)  // "Completed file download"
-		}
-
-		// Download Disk File(s)
-		for i := 1; i < 15; i++ {   // allowing possibility of up to 15 disk files
-			strI = strconv.Itoa(i)
-			checkFile := imageName + "-disk-" + strI + ".vmdk"
-			statusCode, err := operations.GetArtifact(downloadPath + checkFile)
-			if statusCode == "200" {
-				// If we found the artifact, download it...
-				resultMsg, err = operations.RetrieveArtifact(downloadPath + checkFile)
-				if err != nil {
-					common.LogTxtHandler().Error(resultMsg) // Will contain "Error" with additional info
-				}
+		util.OutputDir = newOutputDir          // Setting subdir as the new output directory
+		// Check for output directory and create if it doesn't exist
+		_, err = os.Stat(newOutputDir)
+		if os.IsNotExist(err) {
+			err = os.Mkdir(newOutputDir, 0755)
+			if err != nil {
+				strErr := fmt.Sprintf("%v\n", err)
+				common.LogTxtHandler().Error("Error creating directory: " + newOutputDir + " - " + strErr)
 			} else {
-				common.LogTxtHandler().Info("End of OVF disk file checks.")
-				break
+				common.LogTxtHandler().Info("Successfully created directory: " + newOutputDir)
 			}
 		}
-	} else if ext == ".vmtx" {
-		// Download known, static VMTX files
-		downloadList = []string{".nvram", ".vmsd", ".vmtx", ".vmxf"}
-		for _, item := range downloadList {
-			artifactPath = downloadPath + imageName + item // builds URI path for each expected file type
-			resultMsg, err = operations.RetrieveArtifact(artifactPath)
-		}
-		if err != nil {
-			common.LogTxtHandler().Error("Download VMTX files: " + resultMsg) // Will contain "Error" with additional info
-		} else {
-			common.LogTxtHandler().Info("Download VMTX files: " + resultMsg)  // "Completed file download"
-		}
+		
+		if ext == ".ova" {
+			resultMsg, err = operations.RetrieveArtifact(downloadUri)
+			if err != nil {
+				common.LogTxtHandler().Error(resultMsg) // Will contain "Error" with additional info
+			}
 
-		// Download Disk File(s)
-		checkFile := imageName + ".vmdk"
-		task = "Unnumbered virtual disk file check"
-		resultMsg, err = operations.CheckFileAndDownload(checkFile, downloadPath, task)
-		if err != nil {
-			common.LogTxtHandler().Error(resultMsg)
+		} else if ext == ".ovf" {
+			// Download OVF and assoc files
+			downloadList = []string{".ovf", ".mf"}
+			for _, item := range downloadList {
+				artifactPath = downloadPath + imageName + item // builds URI path for each expected file type
+				resultMsg, err = operations.RetrieveArtifact(artifactPath)
+				if err != nil {
+					break
+				}
+			}
+			if err != nil {
+				common.LogTxtHandler().Error("Download OVF files: " + resultMsg) // Will contain "Error" with additional info
+			} else {
+				common.LogTxtHandler().Info("Download OVF files: " + resultMsg)  // "Completed file download"
+			}
+
+			// We want the downloadList to fully complete before moving on, but if there were any errors,
+			// we won't try to download the disk files.
+			if err == nil {
+				// Download Disk File(s)
+				for i := 1; i < 15; i++ {   // allowing possibility of up to 15 disk files
+					strI = strconv.Itoa(i)
+					checkFile := imageName + "-disk-" + strI + ".vmdk"
+					statusCode, err := operations.GetArtifact(downloadPath + checkFile)
+					if statusCode == "200" {
+						// If we found the artifact, download it...
+						resultMsg, err = operations.RetrieveArtifact(downloadPath + checkFile)
+						if err != nil {
+							common.LogTxtHandler().Error(resultMsg) // Will contain "Error" with additional info
+						}
+					} else {
+						common.LogTxtHandler().Info("End of OVF disk file checks.")
+						break
+					}
+				}
+			} else {
+				common.LogTxtHandler().Error("Errors encountered. The remainder of the file download process will terminate.")
+			}
+		} else if ext == ".vmtx" {
+			// Download known, static VMTX files
+			downloadList = []string{".nvram", ".vmsd", ".vmtx", ".vmxf"}
+			for _, item := range downloadList {
+				artifactPath = downloadPath + imageName + item // builds URI path for each expected file type
+				resultMsg, err = operations.RetrieveArtifact(artifactPath)
+				if err != nil {
+					break
+				}
+			}
+			if err != nil {
+				common.LogTxtHandler().Error("Download VMTX files: " + resultMsg) // Will contain "Error" with additional info
+			} else {
+				common.LogTxtHandler().Info("Download VMTX files: " + resultMsg)  // "Completed file download"
+			}
+
+			// We want the downloadList to fully complete before moving on, but if there were any errors,
+			// we won't try to download the disk files.
+			if err == nil {
+				// Download Disk File(s)
+				checkFile := imageName + ".vmdk"
+				task = "Unnumbered virtual disk file check"
+				resultMsg, err = operations.CheckFileAndDownload(checkFile, downloadPath, task)
+				if err != nil {
+					common.LogTxtHandler().Error(resultMsg)
+				}
+				
+				// Loop for virtual disk files ----------------------------->
+				extString = ".vmdk"
+				task      = "Numbered virtual disk file check"
+				resultMsg, err = operations.CheckFileLoopAndDownload(imageName, downloadPath, extString, task)
+				if err != nil {
+					common.LogTxtHandler().Error(resultMsg)
+				}
+				
+				// Loop for disk -ctk files ----------------------------->
+				checkFile = imageName + "-ctk.vmdk"
+				task = "Unnumbered virtual ctk disk file check"
+				resultMsg, err = operations.CheckFileAndDownload(checkFile, downloadPath, task)
+				if err != nil {
+					common.LogTxtHandler().Error(resultMsg)
+				}
+				
+				extString = "-ctk.vmdk"
+				task      = "Numbered virtual ctk disk file check"
+				resultMsg, err = operations.CheckFileLoopAndDownload(imageName, downloadPath, extString, task)
+				if err != nil {
+					common.LogTxtHandler().Error(resultMsg)
+				}
+				
+				// Loop for VM data disk (-flat) files ----------------------------->
+				checkFile = imageName + "-flat.vmdk"
+				task = "Unnumbered virtual data disk file check"
+				resultMsg, err = operations.CheckFileAndDownload(checkFile, downloadPath, task)
+				if err != nil {
+					common.LogTxtHandler().Error(resultMsg)
+				}
+				
+				extString = "-flat.vmdk"
+				task      = "Numbered virtual data disk file check"
+				resultMsg, err = operations.CheckFileLoopAndDownload(imageName, downloadPath, extString, task)
+				if err != nil {
+					common.LogTxtHandler().Error(resultMsg)
+				}
+				
+				// Download associated vmware.log, if it exists  -------------------->
+				checkFile = "vmware.log"
+				task = "vmware.log file check"
+				resultMsg, err = operations.CheckFileAndDownload(checkFile, downloadPath, task)
+				if err != nil {
+					common.LogTxtHandler().Error(resultMsg)
+				}
+			} else {
+				common.LogTxtHandler().Error("Errors encountered. The remainder of the file download process will terminate.")
+				return "File download failed"
+			}
+			// We are ignoring any potential .scoreboard and .hlog files that may exist
+			// They are not necessary for the imaging process.
 		}
-		
-		// Loop for virtual disk files ----------------------------->
-		extString = ".vmdk"
-		task      = "Numbered virtual disk file check"
-		resultMsg, err = operations.CheckFileLoopAndDownload(imageName, downloadPath, extString, task)
-		if err != nil {
-			common.LogTxtHandler().Error(resultMsg)
-		}
-		
-		// Loop for disk -ctk files ----------------------------->
-		checkFile = imageName + "-ctk.vmdk"
-		task = "Unnumbered virtual ctk disk file check"
-		resultMsg, err = operations.CheckFileAndDownload(checkFile, downloadPath, task)
-		if err != nil {
-			common.LogTxtHandler().Error(resultMsg)
-		}
-		
-		extString = "-ctk.vmdk"
-		task      = "Numbered virtual ctk disk file check"
-		resultMsg, err = operations.CheckFileLoopAndDownload(imageName, downloadPath, extString, task)
-		if err != nil {
-			common.LogTxtHandler().Error(resultMsg)
-		}
-		
-		// Loop for VM data disk (-flat) files ----------------------------->
-		checkFile = imageName + "-flat.vmdk"
-		task = "Unnumbered virtual data disk file check"
-		resultMsg, err = operations.CheckFileAndDownload(checkFile, downloadPath, task)
-		if err != nil {
-			common.LogTxtHandler().Error(resultMsg)
-		}
-		
-		extString = "-flat.vmdk"
-		task      = "Numbered virtual data disk file check"
-		resultMsg, err = operations.CheckFileLoopAndDownload(imageName, downloadPath, extString, task)
-		if err != nil {
-			common.LogTxtHandler().Error(resultMsg)
-		}
-		
-		// Download associated vmware.log, if it exists  -------------------->
-		checkFile = "vmware.log"
-		task = "vmware.log file check"
-		resultMsg, err = operations.CheckFileAndDownload(checkFile, downloadPath, task)
-		if err != nil {
-			common.LogTxtHandler().Error(resultMsg)
-		}
+		return "End of download process"
+	} else {
+		common.LogTxtHandler().Error("One or more required inputs have not been provided.")
+		common.LogTxtHandler().Error("DOWNLOAD URI: " + downloadUri)
+		common.LogTxtHandler().Error("OUTPUT DIRECTORY: " + outputDir)
+		return "Missing required inputs"
 	}
-
-	// We are ignoring any potential .scoreboard and .hlog files that may exist
-	// They are not necessary for our activities. 
-	
-	return "Completed"
-	// Maybe future option to move here?
-	// should convert AFTER copy - files are smaller, fewer
 }

@@ -561,7 +561,7 @@ func CheckFileAndUpload(items []os.DirEntry, sourceDir, targetDir, fileName, ima
 }
 
 func CheckFileAndDownload(checkFile, downloadPath, task string) (string, error) {
-	// checkFile - filename with extention
+	// checkFile - filename with extension
 	// downloadPath - parsed Artifactory path to artifact without the artifact file name
 	// task - what file check we are performing
 	var resultMsg string

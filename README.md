@@ -24,8 +24,8 @@ Using .env File: Configure the `.env` file with the Artifactory Identity Token a
 
     * `ARTIFACTORY_TOKEN`     - Artifactory Identity Token --> Ex:  ARTIFACTORY_TOKEN=1234567890abcdefghijklmnopqrstuv
     * `ARTIFACTORY_SERVER`    - Artifactory Server         --> Ex:  ARTIFACTORY_SERVER=https://server.com:8081/artifactory/api
-    * `ARTIFACTORY_OUTPUTDIR` - Output directory for downloading artifacts --> Ex: ARTIFACTORY_OUTPUTDIR=H:\output-dir\path\ or /output-dir/path/
-    * `ARTIFACTORY_LOGGING`   - Logging level (INFO, WARN, ERROR, DEBUG); defaults to 'INFO' --> Ex:  ARTIFACTORY_LOGGING=DEBUG
+    * `OUTPUTDIR` - Output directory for downloading artifacts --> Ex: OUTPUTDIR=H:\output-dir\path\ or /output-dir/path/
+    * `LOGGING`   - Logging level (INFO, WARN, ERROR, DEBUG); defaults to 'INFO' --> Ex: LOGGING=DEBUG
 
 Then use `os.Getenv` to set `util.ServerApi`, `util.Token`, `util.Logging`, and `util.OutputDir` respectively.
 
