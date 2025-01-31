@@ -274,6 +274,18 @@ func CreateTestDirectory(dirName string) string {
 	return newDirPath
 }
 
+func RenameFile(oldFilePath, newFilePath string) string {
+	// Full path to files
+	err := os.Rename(oldFilePath, newFilePath)
+    if err != nil {
+		strErr := fmt.Sprintf("%v\n", err)
+        LogTxtHandler().Error("Error renaming file - " + strErr)
+		return "Failed"
+    } else {
+		return "Success"
+	}
+}
+
 // create test artifact...
 func CreateTestFile(dirPath, fileName, fileContents string) string {
 	// fileName should be "file.ext" format
@@ -313,7 +325,12 @@ func CreateTestFile(dirPath, fileName, fileContents string) string {
 		LogTxtHandler().Error("Error closing test file - " + strErr)
 	}
 
-	return filePath   // ex: c:\lab\file.txt
+	baseFile := strings.TrimSuffix(fileName, ".txt")
+	newFile := baseFile + ".ova"
+	newFilePath := dirPath + newFile
+
+	RenameFile(filePath, newFilePath)
+	return newFilePath   // ex: c:\lab\file.ova
 }
 
 const testRepoName = "test-packer-plugin"    // DO NOT MODIFY

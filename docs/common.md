@@ -318,3 +318,102 @@ If 'INFO' is set in .env, then only the .Info, .Warn, and .Error logs will be ou
 If 'WARN' is set, then only .Warn, and .Error logs will be output.
 If 'ERROR' is set, then only .Error logs will be output.
 If 'DEBUG' is set, then all logs - .Info, .Warn, .Error, and .Debug - will be output.
+
+
+## CreateTestDirectory
+Used as part of the Artifactory plugin acceptance testing, creates a test directory (the plugin will name it "test-directory") in the user's home directory. As part of this, it will update the directory path to include an ending slash (forward or back, depending on the OS platform) and sets the directory permissions to 0755.
+
+**This will be removed once acceptance testing within the plugin is complete.**
+
+#### Inputs
+| Name     | Description                              | Type     | Required |
+|----------|------------------------------------------|----------|:--------:|
+| dirName  | Name of the test directory to be created | string   | TRUE     |
+
+#### Outputs
+| Name       | Description                                                    | Type    |
+|------------|----------------------------------------------------------------|---------|
+| newDirPath | Returns the directory name created with ending slash appended  | string  |
+
+
+## RenameTestFile
+Used as part of the Artifactory plugin acceptance testing, takes in the full path to the test file and renames it to the new file path.
+
+#### Inputs
+| Name         | Description                                   | Type     | Required |
+|--------------|-----------------------------------------------|----------|:--------:|
+| oldFilePath  | Full path to the file that will be renamed    | string   | TRUE     |
+| newFilePath  | Full path to the resulting file after rename  | string   | TRUE     |
+
+#### Outputs
+| Name     | Description                          | Type    |
+|----------|--------------------------------------|---------|
+| (result) | Returns either "Failed" or "Success" | string  |
+
+
+## CreateTestFile
+Used as part of the Artifactory plugin acceptance testing, this takes in the test directory path (for plugin acceptance testing, this will be "$HOME_DIR/test-directory/", formatted per OS-platform), name of the file, and file contents to create a new test file called "test-artifact.txt" (passed in by the plugin), write brief file contents, and then will using the `RenameTestFile` function to rename it to "test-artifact.ova" to follow the supported image types of the plugin.
+
+**This will be removed once acceptance testing within the plugin is complete.**
+
+#### Inputs
+| Name         | Description                                   | Type     | Required |
+|--------------|-----------------------------------------------|----------|:--------:|
+| dirPath      | Directory name that will house the test file  | string   | TRUE     |
+| fileName     | Name of the test file that will be created    | string   | TRUE     |
+| fileContents | Short amount of text to write to the file     | string   | TRUE     |
+
+#### Outputs
+| Name        | Description                                                                     | Type    |
+|-------------|---------------------------------------------------------------------------------|---------|
+| newFilePath | The full path to the test file (ex: $HOME_DIR/test-directory/test-artifact.ova) | string  |
+
+
+## CreateTestRepo
+Used as part of the Artifactory plugin acceptance testing, this creates a test repo called "test-packer-plugin" within the defined Artifactory environment.
+
+**This will be removed once acceptance testing within the plugin is complete.**
+
+#### Inputs
+None
+
+#### Outputs
+| Name         | Description                                      | Type    |
+|--------------|--------------------------------------------------|---------|
+| testRepoPath | Path to the test repo (i.e. /test-packer-plugin) | string  |
+
+
+## DeleteTestRepo
+Used as part of the Artifactory plugin acceptance testing, this deletes test repo called "test-packer-plugin" within the defined Artifactory environment once acceptance testing is complete. Any test artifacts that are in this test repo are automatically removed as well.
+
+#### Inputs
+None
+
+#### Outputs
+| Name         | Description                                         | Type    |
+|--------------|-----------------------------------------------------|---------|
+| statusCode | Returns "200" if deletion is successful, "400" if not | string  |
+
+
+## DeleteTestFile
+Used as part of the Artifactory plugin acceptance testing, this deletes test file called "test-artifact.ova" from the previously created test directory $HOME_DIR/test-directory (formatted per OS-platform) once acceptance testing is complete.
+
+#### Inputs
+| Name         | Description                               | Type     | Required |
+|--------------|-------------------------------------------|----------|:--------:|
+| dirPath      | Directory name that houses the test file  | string   | TRUE     |
+
+#### Outputs
+None
+
+
+## DeleteTestDirectory
+Used as part of the Artifactory plugin acceptance testing, this deletes test directory called "test-directory" from the user's $HOME_DIR (formatted per OS-platform) once acceptance testing is complete.
+
+#### Inputs
+| Name         | Description                               | Type     | Required |
+|--------------|-------------------------------------------|----------|:--------:|
+| dirPath      | Directory name that housed the test file  | string   | TRUE     |
+
+#### Outputs
+None
