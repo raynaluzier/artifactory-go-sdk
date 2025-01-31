@@ -148,7 +148,7 @@ func UploadArtifact(serverApi, token, sourcePath, targetPath, fileSuffix string)
 	return downloadUri, artifactUri, nil
 }
 
-func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDir, fileSuffix string) (string) {
+func UploadArtifacts(serverApi, token, logLevel, imageType, imageName, sourceDir, targetDir, fileSuffix string) (string) {
 	// Image files will placed in a folder named after the image, so no need to define a folder specifically for the image
 	// targetDir --> /repo/ --> files will be in path: /repo/image1234/image1234.ova, for example
 
@@ -156,6 +156,7 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 	// targetDir ex: /repo-name/folder - We'll check for/add ending slash if needed
 	util.ServerApi = serverApi
 	util.Token	   = token
+	util.Logging   = logLevel
 	var fileName string
 	var err error
 	var fileTypes []string

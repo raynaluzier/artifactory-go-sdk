@@ -104,6 +104,7 @@ The files are validated against the source directory and if they exist, they are
 |-------------|------------------------------------------------------------------------------------------------------------------|----------|:--------:|
 | serverApi   | URL to the target Artifactory server; format: `server.com:8081/artifactory/api`                                  | string   | TRUE     |
 | token       | Identity Token for the Artifactory account executing the function calls                                          | string   | TRUE     |
+| logLevel    | Ouput logging level; INFO, WARN, ERROR, DEBUG; defaults to 'INFO'                 | string   | FALSE    |
 | imageType   | Type of image to be uploaded (OVA, OVF, or VMTX are supported)                                                   | string   | TRUE     |
 | imageName   | Base name of the image (ex: win2022)                                                                             | string   | TRUE     |
 | sourceDir   | Directory path (without any filename) where the image will be sourced from; **Needs proper escape chars          | string   | TRUE     |
