@@ -1,11 +1,13 @@
 package main
 
 import (
+	_ "fmt"
 	"os"
 
 	_ "github.com/raynaluzier/artifactory-go-sdk/common"
 	_ "github.com/raynaluzier/artifactory-go-sdk/operations"
 	_ "github.com/raynaluzier/artifactory-go-sdk/search"
+	_ "github.com/raynaluzier/artifactory-go-sdk/tasks"
 	"github.com/raynaluzier/artifactory-go-sdk/util"
 )
 

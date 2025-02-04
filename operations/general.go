@@ -542,22 +542,33 @@ func CheckFileAndUpload(items []os.DirEntry, sourceDir, targetDir, fileName, ima
 	// targetDir ex: /repo-name/folder/ - assumes ending slash
 	var sourcePath, targetPath string
 	for _, item := range items {
+		common.LogTxtHandler().Debug("Checking " + fileName + " against " + item.Name() + "...")
 		if item.Name() == fileName {
 			sourcePath = sourceDir + fileName
 			targetPath = targetDir + imageName + "/"
 			suff := ""
+
+			common.LogTxtHandler().Debug("Source Path: " + sourcePath)
+			common.LogTxtHandler().Debug("Target Path: " + targetPath)
+
 			downloadUri, err := UploadFile(sourcePath, targetPath, suff)
+
 			if err != nil {
 				strErr := fmt.Sprintf("%v\n", err)
 				common.LogTxtHandler().Error("Error uploading: " + fileName + " to: " + targetPath + " - " + strErr)
-				return "Failed", err
 			} else {
 				common.LogTxtHandler().Info("File: " + fileName + " uploaded.")
 				common.LogTxtHandler().Info("Download URI: " + downloadUri)
 			}
+		} else {
+			common.LogTxtHandler().Debug("Checking next file...")
 		}
 	}
-	return "Success", nil
+	if err != nil {
+		return "Failed", err
+	} else {
+		return "Success", nil   // Doesn't mean a file was found; just that there was no error during checks
+	}
 }
 
 func CheckFileAndDownload(checkFile, downloadPath, task string) (string, error) {
