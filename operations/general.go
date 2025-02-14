@@ -218,6 +218,18 @@ func RetrieveArtifact(downloadUri string) (string, error) {
 		outputDir = common.EscapeSpecialChars(util.OutputDir)  // Ensure special characters are escaped
 		outputDir = common.CheckAddSlashToPath(outputDir) // Ensure path ends with appropriate slash type
 
+		// Check for output directory and create if it doesn't exist
+		_, err = os.Stat(outputDir)
+		if os.IsNotExist(err) {
+			err = os.MkdirAll(outputDir, 0755)   // Will create any directories in the given path if doesn't exist
+			if err != nil {
+				strErr := fmt.Sprintf("%v\n", err)
+				common.LogTxtHandler().Error("Error creating directory: " + outputDir + " - " + strErr)
+			} else {
+				common.LogTxtHandler().Info("Successfully created directory: " + outputDir)
+			}
+		}
+
 	} else {  // No output directory specified...
 		common.LogTxtHandler().Warn("*** No output directory provided; output will be user's home directory.")
 		outputDir, err = os.UserHomeDir()

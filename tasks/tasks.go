@@ -438,7 +438,7 @@ func DownloadArtifacts(serverApi, token, downloadUri, outputDir string) string {
 		// Check for output directory and create if it doesn't exist
 		_, err = os.Stat(newOutputDir)
 		if os.IsNotExist(err) {
-			err = os.Mkdir(newOutputDir, 0755)
+			err = os.MkdirAll(newOutputDir, 0755)   // Will create any directories in the given path if doesn't exist
 			if err != nil {
 				strErr := fmt.Sprintf("%v\n", err)
 				common.LogTxtHandler().Error("Error creating directory: " + newOutputDir + " - " + strErr)
