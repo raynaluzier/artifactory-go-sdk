@@ -129,23 +129,23 @@ func TeardownTest(serverApi, token string) (string) {
 	}
 }
 
-func UploadArtifact(serverApi, token, sourcePath, targetPath, fileSuffix string) (string, string, error) {
+func UploadGeneralArtifact(serverApi, token, sourcePath, artifPath, fileName, folderName string) (string, error) {
 	// Single file
+	// 'folderName' may be the same as the image name, if wanting to place the artifact with a given image
 	util.ServerApi = serverApi
 	util.Token	   = token
-	var artifactUri string
-	common.LogTxtHandler().Debug("UPLOADING NEW ARTIFACT TO ARTIFACTORY...")
 
-	downloadUri, err := operations.UploadFile(sourcePath, targetPath, fileSuffix)
+	sourcePath = common.CheckAddSlashToPath(sourcePath)
+	artifPath  = common.CheckAddSlashToPath(artifPath)
+	
+	items, _ := os.ReadDir(sourcePath)            // Get list of files in Dir to check against our file
+	result, err := operations.CheckFileAndUpload(items, sourcePath, artifPath, fileName, folderName)
+	
 	if err != nil {
-		strErr := fmt.Sprintf("%v\n", err)
-		common.LogTxtHandler().Error("Unable to upload artifact - " + strErr)
-		return "", "", err
+		return result, err
 	} else {
-		artifactUri = common.SetArtifUriFromDownloadUri(downloadUri)
+		return result, nil
 	}
-
-	return downloadUri, artifactUri, nil
 }
 
 func UploadArtifacts(serverApi, token, logLevel, imageType, imageName, sourceDir, targetDir, fileSuffix string) (string) {
@@ -163,7 +163,7 @@ func UploadArtifacts(serverApi, token, logLevel, imageType, imageName, sourceDir
 	imageType = strings.ToLower(imageType)
 
 	if imageName != "" && sourceDir != "" && targetDir != "" {
-		common.LogTxtHandler().Debug("UPLOADING NEW ARTIFACT TO ARTIFACTORY...")
+		common.LogTxtHandler().Debug("UPLOADING NEW ARTIFACTS TO ARTIFACTORY...")
 		newSourceDir := common.CheckAddSlashToPath(sourceDir)  // makes sure ending slash exists
 		newTargetDir := common.CheckAddSlashToPath(targetDir)
 		items, _ := os.ReadDir(sourceDir)

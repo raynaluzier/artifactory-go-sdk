@@ -69,25 +69,28 @@ As part of the Artifactory plugin acceptance test, this function takes in the Ar
 | statusCode | Returns status code "200" if teardown is successful, or "400" if not  | string   |
 
 
-## UploadArtifact
-Takes in the Artifactory server's API address, Artifactory Identity token, source path of the new artifact, target path within Artifactory where the new artifact should be uploaded to, and optionally a file suffix if using the same artifact base name and needing to make it unique (ex: version, date, etc separated by '-'). The Global Variables `util.ServerApi` and `util.Token` are set by the function's inputs so these values can be used by the subsequent function calls without having to pass them in every time.
+## UploadGeneralArtifact
+Takes in the Artifactory server's API address, Artifactory Identity token, source path of the artifact, target path within Artifactory where the artifact should be uploaded to, file name of the artifact, and a folder name where the artifact should be placed. Folder name may be the same as the image name if placing the artifact with associated image files, or it could be a separate folder for flexibility. Otherwise, leave `folderName` blank and the file will be place directly in the `artifPath`.
 
-Once the variables are set, the file is uploaded from the provided source path (`c:\\lab\\artifact.ext` or `/lab/artifact.ext` to the target path (`/repo/folder/path`). If successful, the download URI of the returned from this operation. Next, the artifact URI is derived from the download URI. Both the download URI and artifact URI are returned
+The Global Variables `util.ServerApi` and `util.Token` are set by the function's inputs so these values can be used by the subsequent function calls without having to pass them in every time.
+
+Once the variables are set, the source file is verified that it exists in the directory and if so, uploaded from the provided source path to the target Artifactory path (`/repo/folder/path`). The result string of "Success" or "Failed" is returned.
 
 #### Inputs
 | Name        | Description                                                                     | Type     | Required |
 |-------------|---------------------------------------------------------------------------------|----------|:--------:|
 | serverApi   | URL to the target Artifactory server; format: `server.com:8081/artifactory/api` | string   | TRUE     |
 | token       | Identity Token for the Artifactory account executing the function calls         | string   | TRUE     |
-| sourcePath  | Full file path where will be sourced from; **Needs proper escape chars          | string   | TRUE     |
-| targetPath  | Target repo and folder destination of the artifact                              | string   | TRUE     |
-| fileSuffix  | Placeholder for distinguishing values like dates, versions, etc                 | string   | FALSE    |
+| sourcePath  | Directory where file will be sourced from; **Needs proper escape chars          | string   | TRUE     |
+| artifPath   | Target repo and folder destination of the artifact                              | string   | TRUE     |
+| fileName    | Name of the file with extenion being checked and uploaded                       | string   | TRUE     |
+| folderName  | Optional folder name to place the file into                                     | string   | FALSE    |
 
 #### Outputs
-| Name         | Description                                                                   | Type     |
-|--------------|-------------------------------------------------------------------------------|----------|
-| downloadUri  | Download URI address used to retrieve/download the artifact from Artifactory  | string   |
-| artifactUri  | Artifact URI address of the artifact and it's details within Artifactory      | string   |
+| Name   | Description                                                 | Type     |
+|--------|-------------------------------------------------------------|----------|
+| result | Resulting string of "Success" or "Failed" for the operation | string   |
+| err    | Error message returned if upload failed                     | string   |
 
 
 ## UploadArtifacts

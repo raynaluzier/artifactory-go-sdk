@@ -58,3 +58,4 @@ Depending how artifacts are named (for ex: myfile-1.0.0.iso, myfile-1.1.1.iso, m
 | Name       | Description                                        | Type       |
 |------------|----------------------------------------------------|------------|
 | foundPaths | List of path(s) that contain target artiface name  | []string   |
+

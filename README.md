@@ -56,11 +56,13 @@ These larger tasks also group the targeted functions of a desired behavior into 
 This is a list of the global variables used within this SDK. As with any Go package, they can be used by importing the `util` package path and then referencing them as `util.Token`, `util.ServerApi`, etc.
 
 ### Archive
-Archive also exists as a package, but it's really just a place to hold potentially useful functions that were created but have no immediate use. Artifacts are split into archive files that match their associated behaviors; as of now, either the `archive-general.go` or `archive-search.go` files. 
+Archive also exists as a package, but it's really just a place to hold potentially useful functions that were created but have no immediate use. Artifacts are split into archive files that match their associated behaviors.
 
 The `archive-search.go` file contains functions that are more specific to artifacts that make use of Layouts, which may/may not be the case and would result in different behaviors or errors if used against artifacts that did not use Layouts. Therefore, more generalized operations and search capabilities were favored instead.
 
 The `archive-general.go` file contains functions related to finding a specific artifact and then returning it's file path through recursive searches. Instead, finding the artifact by name, then filtering by file type, and optionally filtering by one or more specific properties/values was easier and more accurate. Therefore, the path-related functions were archived. 
+
+The `archive-tasks.go` file contains functions related more involved tasks that were intended to be used with the Artifactory plugin.
 
 ## Function Reference
 A reference outline of each function's behavior and any special notes can be found in the corresponding documents below.

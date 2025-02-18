@@ -557,7 +557,12 @@ func CheckFileAndUpload(items []os.DirEntry, sourceDir, targetDir, fileName, ima
 		common.LogTxtHandler().Debug("Checking " + fileName + " against " + item.Name() + "...")
 		if item.Name() == fileName {
 			sourcePath = sourceDir + fileName
-			targetPath = targetDir + imageName + "/"
+
+			if imageName != "" {
+				targetPath = targetDir + imageName + "/"
+			} else {
+				targetPath = common.CheckAddSlashToPath(targetDir)
+			}
 			suff := ""
 
 			common.LogTxtHandler().Debug("Source Path: " + sourcePath)
