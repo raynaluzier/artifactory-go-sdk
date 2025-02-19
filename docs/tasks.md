@@ -93,6 +93,30 @@ Once the variables are set, the source file is verified that it exists in the di
 | err    | Error message returned if upload failed                     | string   |
 
 
+## DownloadGeneralArtifact
+Takes in the Artifactory server's API address, Artifactory Identity token, desired output directory, Artifactory path within Artifactory where the artifact should be download from, file name of the artifact, and task string used for logging.
+
+The Global Variables `util.ServerApi`, `util.Token`, and `util.OutputDir` are set by the function's inputs so these values can be used by the subsequent function calls without having to pass them in every time.
+
+Once the variables are set, the desired file is verified that it exists in the Artifactory path (ex: /repo/opt-folder/), and if so, it's downloaded to the output directory. The result string of "Success" or "Failed" is returned.
+
+#### Inputs
+| Name        | Description                                                                     | Type     | Required |
+|-------------|---------------------------------------------------------------------------------|----------|:--------:|
+| serverApi   | URL to the target Artifactory server; format: `server.com:8081/artifactory/api` | string   | TRUE     |
+| token       | Identity Token for the Artifactory account executing the function calls         | string   | TRUE     |
+| outputDir   | Directory where file will be downloaded to; **Needs proper escape chars         | string   | TRUE     |
+| artifPath   | Target repo and folder destination of the artifact; ex: `/repo/opt-folder/`     | string   | TRUE     |
+| fileName    | Name of the file with extenion being checked and uploaded                       | string   | TRUE     |
+| task        | String that logs each file being downloaded for info purposes                   | string   | TRUE     |
+
+#### Outputs
+| Name   | Description                                                 | Type     |
+|--------|-------------------------------------------------------------|----------|
+| result | Resulting string of "Success" or "Failed" for the operation | string   |
+| err    | Error message returned if upload failed                     | string   |
+
+
 ## UploadArtifacts
 Takes in the Artifactory server's API address, Artifactory Identity token, image type (OVA, OVF, or VMTX), image name, source path of the new artifact (ex: c:\\lab or /lab), target path within Artifactory where the new artifact should be uploaded to (ex: /repo/opt-folder/), and optionally a file suffix if using the same artifact base name and needing to make it unique (ex: version, date, etc separated by '-'). 
 

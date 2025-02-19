@@ -251,6 +251,11 @@ func LogJsonHandler() *slog.Logger {
 	return jsonLogger
 }
 
+func TrimEndSlashUrl(url string) string {
+	trimmedUrl := strings.TrimSuffix(url, "/")
+	return trimmedUrl
+}
+
 // --> The following functions are used for setting up a test environment for artifactory plugin acceptance testing
 
 func CreateTestDirectory(dirName string) string {

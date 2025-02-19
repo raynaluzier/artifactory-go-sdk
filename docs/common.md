@@ -320,6 +320,20 @@ If 'ERROR' is set, then only .Error logs will be output.
 If 'DEBUG' is set, then all logs - .Info, .Warn, .Error, and .Debug - will be output.
 
 
+## TrimEndSlashUrl
+Takes in a URL string and trims off the ending slash if it exists. If the URL doesn't end with a slash, then the original URL is returned.
+
+#### Inputs
+| Name | Description | Type     | Required |
+|------|-------------|----------|:--------:|
+| url  | URL to trim | string   | TRUE     |
+
+#### Outputs
+| Name       | Description               | Type    |
+|------------|---------------------------|---------|
+| trimmedUrl | URL with no ending slash  | string  |
+
+
 ## CreateTestDirectory
 Used as part of the Artifactory plugin acceptance testing, creates a test directory (the plugin will name it "test-directory") in the user's home directory. As part of this, it will update the directory path to include an ending slash (forward or back, depending on the OS platform) and sets the directory permissions to 0755.
 
@@ -336,7 +350,7 @@ Used as part of the Artifactory plugin acceptance testing, creates a test direct
 | newDirPath | Returns the directory name created with ending slash appended  | string  |
 
 
-## RenameTestFile
+## RenameFile
 Used as part of the Artifactory plugin acceptance testing, takes in the full path to the test file and renames it to the new file path.
 
 #### Inputs

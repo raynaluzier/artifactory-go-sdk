@@ -148,6 +148,23 @@ func UploadGeneralArtifact(serverApi, token, sourcePath, artifPath, fileName, fo
 	}
 }
 
+func DownloadGeneralArtifact(serverApi, token, outputDir, artifPath, file, task string) (string, error) {
+	util.ServerApi = serverApi
+	util.Token	   = token
+	util.OutputDir = outputDir
+
+	serverApi = common.TrimEndSlashUrl(serverApi)
+	downloadPath := serverApi + artifPath
+	downloadPath = common.CheckAddSlashToPath(downloadPath)
+
+	result, err := operations.CheckFileAndDownload(file, downloadPath, task)
+	if result == "Failed" {
+		return result, err
+	} else {
+		return result, nil
+	}
+}
+
 func UploadArtifacts(serverApi, token, logLevel, imageType, imageName, sourceDir, targetDir, fileSuffix string) (string) {
 	// Image files will placed in a folder named after the image, so no need to define a folder specifically for the image
 	// targetDir --> /repo/ --> files will be in path: /repo/image1234/image1234.ova, for example
