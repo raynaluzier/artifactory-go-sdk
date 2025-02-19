@@ -366,21 +366,24 @@ Used as part of the Artifactory plugin acceptance testing, takes in the full pat
 
 
 ## CreateTestFile
-Used as part of the Artifactory plugin acceptance testing, this takes in the test directory path (for plugin acceptance testing, this will be "$HOME_DIR/test-directory/", formatted per OS-platform), name of the file, and file contents to create a new test file called "test-artifact.txt" (passed in by the plugin), write brief file contents, and then will using the `RenameTestFile` function to rename it to "test-artifact.ova" to follow the supported image types of the plugin.
+Used as part of the Artifactory plugin acceptance testing, this takes in the test directory path (for plugin acceptance testing, this will be "$HOME_DIR/test-directory/", formatted per OS-platform), name of the file, and file contents to create a new test file called "test-artifact.txt" (passed in by the plugin), and will write brief file contents. 
+
+Depending on the needs of the test, `setAsOva` will determine whether to run the `RenameTestFile` function to rename it to "test-artifact.ova" to follow the supported image types of the plugin.
 
 **This will be removed once acceptance testing within the plugin is complete.**
 
 #### Inputs
-| Name         | Description                                   | Type     | Required |
-|--------------|-----------------------------------------------|----------|:--------:|
-| dirPath      | Directory name that will house the test file  | string   | TRUE     |
-| fileName     | Name of the test file that will be created    | string   | TRUE     |
-| fileContents | Short amount of text to write to the file     | string   | TRUE     |
+| Name         | Description                                       | Type     | Required |
+|--------------|---------------------------------------------------|----------|:--------:|
+| dirPath      | Directory name that will house the test file      | string   | TRUE     |
+| fileName     | Name of the test file that will be created        | string   | TRUE     |
+| fileContents | Short amount of text to write to the file         | string   | TRUE     |
+| setAsOva     | Whether or not to convert the test file to an OVA | bool     | TRUE     |
 
 #### Outputs
-| Name        | Description                                                                     | Type    |
-|-------------|---------------------------------------------------------------------------------|---------|
-| newFilePath | The full path to the test file (ex: $HOME_DIR/test-directory/test-artifact.ova) | string  |
+| Name        | Description                                                                                     | Type    |
+|-------------|-------------------------------------------------------------------------------------------------|---------|
+| newFilePath / filePath | The full path to the test file (ex: $HOME_DIR/test-directory/test-artifact.ova/.txt) | string  |
 
 
 ## CreateTestRepo

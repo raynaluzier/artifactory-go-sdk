@@ -292,7 +292,7 @@ func RenameFile(oldFilePath, newFilePath string) string {
 }
 
 // create test artifact...
-func CreateTestFile(dirPath, fileName, fileContents string) string {
+func CreateTestFile(dirPath, fileName, fileContents string, setAsOva bool) string {
 	// fileName should be "file.ext" format
 	var (
 		err					error
@@ -330,12 +330,16 @@ func CreateTestFile(dirPath, fileName, fileContents string) string {
 		LogTxtHandler().Error("Error closing test file - " + strErr)
 	}
 
-	baseFile := strings.TrimSuffix(fileName, ".txt")
-	newFile := baseFile + ".ova"
-	newFilePath := dirPath + newFile
+	if setAsOva == true {
+		baseFile := strings.TrimSuffix(fileName, ".txt")
+		newFile := baseFile + ".ova"
+		newFilePath := dirPath + newFile
 
-	RenameFile(filePath, newFilePath)
-	return newFilePath   // ex: c:\lab\file.ova
+		RenameFile(filePath, newFilePath)
+		return newFilePath   // ex: c:\lab\file.ova
+	} else {
+		return filePath
+	}
 }
 
 const testRepoName = "test-packer-plugin"    // DO NOT MODIFY
