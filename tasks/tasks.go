@@ -13,7 +13,7 @@ import (
 	"github.com/raynaluzier/artifactory-go-sdk/util"
 )
 
-func GetImageDetails(serverApi, token, logLevel, artifName, ext string, kvProps []string) (string, string, string, string) {
+func GetImageDetails(serverApi, token, logLevel, artifName, ext string, kvProps []string) (string, string, string, string, error) {
 	util.ServerApi = serverApi
 	util.Token     = token
 	util.Logging   = logLevel
@@ -26,6 +26,7 @@ func GetImageDetails(serverApi, token, logLevel, artifName, ext string, kvProps 
 	if err != nil {
 		strErr = fmt.Sprintf("%v\n", err)
 		common.LogTxtHandler().Error("Error getting list of matching artifacts - " + strErr)
+		return "", "", "", "", err
 	}
 
 	common.LogTxtHandler().Debug("Filtering list of artifacts by file type...")
@@ -33,6 +34,7 @@ func GetImageDetails(serverApi, token, logLevel, artifName, ext string, kvProps 
 	if err != nil {
 		strErr = fmt.Sprintf("%v\n", err)
 		common.LogTxtHandler().Error("Error filtering artifacts by file type - " + strErr)
+		return "", "", "", "", err
 	}
 
 	if len(listByFileType) == 1 {
@@ -58,31 +60,38 @@ func GetImageDetails(serverApi, token, logLevel, artifName, ext string, kvProps 
 		if err != nil {
 			strErr = fmt.Sprintf("%v\n", err)
 			common.LogTxtHandler().Error("Error getting latest artifact from list - " + strErr)
+			return "", "", "", "", err
 		}
 		common.LogTxtHandler().Debug("Artifact found: " + artifactUri)
 	}
 
-	common.LogTxtHandler().Debug("Getting artifact name...")
-	artifactName := operations.GetArtifactNameFromUri(artifactUri)
-	common.LogTxtHandler().Debug("Artifact Name: " + artifactName)
-
-	common.LogTxtHandler().Debug("Getting creation date for artifact...")
-	createDate, err := operations.GetCreateDate(artifactUri)
-	if err != nil {
-		strErr = fmt.Sprintf("%v\n", err)
-		common.LogTxtHandler().Error("Unable to get create date of artifact - " + strErr)
-	}
-	common.LogTxtHandler().Debug("Creation Date is: " + createDate)
-
-	common.LogTxtHandler().Debug("Getting download URI for artifact...")
-	downloadUri, err := operations.GetDownloadUri(artifactUri)
-	if err != nil {
-		strErr = fmt.Sprintf("%v\n", err)
-		common.LogTxtHandler().Error("Unable to get download URI - " + strErr)
-	}
-	common.LogTxtHandler().Debug("Download URI: " + downloadUri)
+	if artifactUri != "" {
+		common.LogTxtHandler().Debug("Getting artifact name...")
+		artifactName := operations.GetArtifactNameFromUri(artifactUri)
+		common.LogTxtHandler().Debug("Artifact Name: " + artifactName)
+		
+		common.LogTxtHandler().Debug("Getting creation date for artifact...")
+		createDate, err := operations.GetCreateDate(artifactUri)
+		if err != nil {
+			strErr = fmt.Sprintf("%v\n", err)
+			common.LogTxtHandler().Error("Unable to get create date of artifact - " + strErr)
+			return "", "", "", "", err
+		}
+		common.LogTxtHandler().Debug("Creation Date is: " + createDate)
 	
-	return artifactUri, artifactName, createDate, downloadUri
+		common.LogTxtHandler().Debug("Getting download URI for artifact...")
+		downloadUri, err := operations.GetDownloadUri(artifactUri)
+		if err != nil {
+			strErr = fmt.Sprintf("%v\n", err)
+			common.LogTxtHandler().Error("Unable to get download URI - " + strErr)
+			return "", "", "", "", err
+		}
+		common.LogTxtHandler().Debug("Download URI: " + downloadUri)
+		
+		return artifactUri, artifactName, createDate, downloadUri, nil
+	} else {
+		return "", "", "", "", err
+	}
 }
 
 // Must have Artifactory instance licensed at Pro or higher, access to create/remove repos and artifacts

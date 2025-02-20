@@ -27,6 +27,8 @@ If the resulting list of artifacts still contains more than one artifact, then t
 | artifactName | Full name of the artifact as it exists in Artifactory                 | string   |
 | createDate   | Date the artifact was created within Artifactory                      | string   |
 | downloadUri  | Download URI used to retrieve/download the artifact from Artifactory  | string   |
+| err          | If error occurs, the error is returned                                | string   |
+
 
 ## SetupTest
 As part of the Artifactory plugin acceptance test, this function takes in the Artifactory server's API address, Artifactory Identity token, the full path to the test artifact that gets created (which is created from the plugin - ex: test-artifact.txt in the HOME directory of the user running the acceptance test), artifact suffix (optional, such as '1.0.0' or a date string, etc), and key/value pair of test properties (ex: release=latest-stable). The gloabl variables `util.ServerApi` and `util.Token` are set by the function's inputs so these values can be used by the subsequent function calls without having to pass them in every time.
