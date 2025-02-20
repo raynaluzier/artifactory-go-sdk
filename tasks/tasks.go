@@ -20,12 +20,15 @@ func GetImageDetails(serverApi, token, logLevel, artifName, ext string, kvProps 
 	var artifactUri string
 	var strErr string
 
+	common.LogTxtHandler().Debug(">>> GETTING IMAGE DETAILS...")
+	common.LogTxtHandler().Debug("Getting artifacts by name...")
 	listArtifacts, err := search.GetArtifactsByName(artifName)
 	if err != nil {
 		strErr = fmt.Sprintf("%v\n", err)
 		common.LogTxtHandler().Error("Error getting list of matching artifacts - " + strErr)
 	}
 
+	common.LogTxtHandler().Debug("Filtering list of artifacts by file type...")
 	listByFileType, err := search.FilterListByFileType(ext, listArtifacts)
 	if err != nil {
 		strErr = fmt.Sprintf("%v\n", err)
@@ -34,8 +37,14 @@ func GetImageDetails(serverApi, token, logLevel, artifName, ext string, kvProps 
 
 	if len(listByFileType) == 1 {
 		// if just one artifact, we'll return it
+		common.LogTxtHandler().Debug("List of artifacts contains one value...")
 		artifactUri = listByFileType[0]
+
+		common.LogTxtHandler().Debug("Artifact found: " + artifactUri)
+
 	} else if len(listByFileType) > 1 && len(kvProps) != 0 {
+		common.LogTxtHandler().Debug("List of artifacts contains multiple values...")
+		common.LogTxtHandler().Debug("Filtering list of artifacts by properties...")
 		artifactUri, err = operations.FilterListByProps(listByFileType, kvProps)
 		if err != nil {
 			strErr = fmt.Sprintf("%v\n", err)
@@ -43,26 +52,35 @@ func GetImageDetails(serverApi, token, logLevel, artifName, ext string, kvProps 
 		}
 	} else {
 		// if no props passed, but more than one artif is in list, return latest
+		common.LogTxtHandler().Debug("List of artifacts contains multiple values...")
+		common.LogTxtHandler().Debug("Returning latest...")
 		artifactUri, err = operations.GetLatestArtifactFromList(listByFileType)
 		if err != nil {
 			strErr = fmt.Sprintf("%v\n", err)
 			common.LogTxtHandler().Error("Error getting latest artifact from list - " + strErr)
 		}
+		common.LogTxtHandler().Debug("Artifact found: " + artifactUri)
 	}
 
+	common.LogTxtHandler().Debug("Getting artifact name...")
 	artifactName := operations.GetArtifactNameFromUri(artifactUri)
+	common.LogTxtHandler().Debug("Artifact Name: " + artifactName)
 
+	common.LogTxtHandler().Debug("Getting creation date for artifact...")
 	createDate, err := operations.GetCreateDate(artifactUri)
 	if err != nil {
 		strErr = fmt.Sprintf("%v\n", err)
 		common.LogTxtHandler().Error("Unable to get create date of artifact - " + strErr)
 	}
+	common.LogTxtHandler().Debug("Creation Date is: " + createDate)
 
+	common.LogTxtHandler().Debug("Getting download URI for artifact...")
 	downloadUri, err := operations.GetDownloadUri(artifactUri)
 	if err != nil {
 		strErr = fmt.Sprintf("%v\n", err)
 		common.LogTxtHandler().Error("Unable to get download URI - " + strErr)
 	}
+	common.LogTxtHandler().Debug("Download URI: " + downloadUri)
 	
 	return artifactUri, artifactName, createDate, downloadUri
 }
@@ -129,38 +147,54 @@ func TeardownTest(serverApi, token string) (string) {
 	}
 }
 
-func UploadGeneralArtifact(serverApi, token, sourcePath, artifPath, fileName, folderName string) (string, error) {
+func UploadGeneralArtifact(serverApi, token, logLevel, sourcePath, artifPath, fileName, folderName string) (string, error) {
 	// Single file
 	// 'folderName' may be the same as the image name, if wanting to place the artifact with a given image
 	util.ServerApi = serverApi
 	util.Token	   = token
+	util.Logging   = logLevel
 
+	common.LogTxtHandler().Info(">>> Beginning validation and upload of "  + fileName)
 	sourcePath = common.CheckAddSlashToPath(sourcePath)
 	artifPath  = common.CheckAddSlashToPath(artifPath)
+
+	common.LogTxtHandler().Debug("Source Path: " + sourcePath)
+	common.LogTxtHandler().Debug("Artifact Path: " + artifPath)
 	
 	items, _ := os.ReadDir(sourcePath)            // Get list of files in Dir to check against our file
 	result, err := operations.CheckFileAndUpload(items, sourcePath, artifPath, fileName, folderName)
 	
 	if err != nil {
+		strErr := fmt.Sprintf("%v\n", err)
+		common.LogTxtHandler().Error("Error uploading file: " + fileName + " - " + strErr)
 		return result, err
 	} else {
+		common.LogTxtHandler().Debug("Successfully uploaded file: " + fileName)
 		return result, nil
 	}
 }
 
-func DownloadGeneralArtifact(serverApi, token, outputDir, artifPath, file, task string) (string, error) {
+func DownloadGeneralArtifact(serverApi, token, logLevel, outputDir, artifPath, fileName, task string) (string, error) {
 	util.ServerApi = serverApi
 	util.Token	   = token
 	util.OutputDir = outputDir
+	util.Logging   = logLevel
+	common.LogTxtHandler().Info(">>> Beginning validation and download of "  + fileName)
 
 	serverApi = common.TrimEndSlashUrl(serverApi)
 	downloadPath := serverApi + artifPath
 	downloadPath = common.CheckAddSlashToPath(downloadPath)
 
-	result, err := operations.CheckFileAndDownload(file, downloadPath, task)
+	common.LogTxtHandler().Debug("Server API: " + serverApi)
+	common.LogTxtHandler().Debug("Download Path: " + downloadPath)
+
+	result, err := operations.CheckFileAndDownload(fileName, downloadPath, task)
 	if result == "Failed" {
+		strErr := fmt.Sprintf("%v\n", err)
+		common.LogTxtHandler().Error("Error downloading file: " + fileName + " - " + strErr)
 		return result, err
 	} else {
+		common.LogTxtHandler().Debug("Successfully downloaded file: " + fileName)
 		return result, nil
 	}
 }
@@ -388,13 +422,16 @@ func UploadArtifacts(serverApi, token, logLevel, imageType, imageName, sourceDir
 	}
 }
 
-func SetProps(serverApi, token, artifUri string, kvProps []string) (string, error) {
+func SetProps(serverApi, token, logLevel, artifUri string, kvProps []string) (string, error) {
 	util.ServerApi = serverApi
 	util.Token	   = token
+	util.Logging   = logLevel
 
 	common.LogTxtHandler().Debug("UPDATING PROPERTIES OF ARTIFACT...")
 
 	statusCode, err := operations.SetArtifactProps(artifUri, kvProps)
+	common.LogTxtHandler().Debug("Status code of Set Artifact Properties task: " + statusCode)
+
 	if statusCode == "204" {
 		props, err := operations.GetAllPropsForArtifact(artifUri)
 
@@ -413,7 +450,7 @@ func SetProps(serverApi, token, artifUri string, kvProps []string) (string, erro
 	}
 }
 
-func DownloadArtifacts(serverApi, token, downloadUri, outputDir string) string {
+func DownloadArtifacts(serverApi, token, logLevel, downloadUri, outputDir string) string {
 	// Takes in download URI that corresponds to OVA, OVF, or VMTX file in Artifactory; 
 	// Will then determine other expected associated artifacts and download those as well
 		// Appends an incrementing numeric value (string; up to 15) to disk type and checks for existance of disk file
@@ -421,9 +458,10 @@ func DownloadArtifacts(serverApi, token, downloadUri, outputDir string) string {
 	// ** If planning to import image file into vCenter, make the output directory the destination datastore
 
 	util.ServerApi = serverApi
-	util.Token = token
+	util.Token     = token
+	util.Logging   = logLevel
 	
-	common.LogTxtHandler().Debug("DOWNLOADING ARTIFACT FROM ARTIFACTORY...")
+	common.LogTxtHandler().Info("DOWNLOADING ARTIFACT(S) FROM ARTIFACTORY...")
 	
 	var artifactPath string
 	var downloadList []string
@@ -465,6 +503,7 @@ func DownloadArtifacts(serverApi, token, downloadUri, outputDir string) string {
 		}
 		
 		if ext == ".ova" {
+			common.LogTxtHandler().Info("Image type identified as OVA. Downloading OVA file...")
 			resultMsg, err = operations.RetrieveArtifact(downloadUri)
 			if err != nil {
 				common.LogTxtHandler().Error(resultMsg) // Will contain "Error" with additional info
@@ -472,11 +511,15 @@ func DownloadArtifacts(serverApi, token, downloadUri, outputDir string) string {
 
 		} else if ext == ".ovf" {
 			// Download OVF and assoc files
+			common.LogTxtHandler().Info("Image type identified as OVF. Downloading OVF files...")
 			downloadList = []string{".ovf", ".mf"}
 			for _, item := range downloadList {
 				artifactPath = downloadPath + imageName + item // builds URI path for each expected file type
+				common.LogTxtHandler().Info("Downloading: " + artifactPath)
 				resultMsg, err = operations.RetrieveArtifact(artifactPath)
 				if err != nil {
+					common.LogTxtHandler().Error("Error downloading " + artifactPath)
+					common.LogTxtHandler().Error(resultMsg)
 					break
 				}
 			}
@@ -493,14 +536,18 @@ func DownloadArtifacts(serverApi, token, downloadUri, outputDir string) string {
 				for i := 1; i < 15; i++ {   // allowing possibility of up to 15 disk files
 					strI = strconv.Itoa(i)
 					checkFile := imageName + "-disk" + strI + ".vmdk"					// changing from -disk-# to -disk#
+					common.LogTxtHandler().Info("Checking for existance of disk file: " + checkFile)
+
 					statusCode, err := operations.GetArtifact(downloadPath + checkFile)
 					if statusCode == "200" {
 						// If we found the artifact, download it...
+						common.LogTxtHandler().Info("Disk file FOUND. Downloading...")
 						resultMsg, err = operations.RetrieveArtifact(downloadPath + checkFile)
 						if err != nil {
 							common.LogTxtHandler().Error(resultMsg) // Will contain "Error" with additional info
 						}
 					} else {
+						common.LogTxtHandler().Info("Disk file doesn't exist. Reached end of disk files.")
 						common.LogTxtHandler().Info("End of OVF disk file checks.")
 						break
 					}
@@ -510,11 +557,16 @@ func DownloadArtifacts(serverApi, token, downloadUri, outputDir string) string {
 			}
 		} else if ext == ".vmtx" {
 			// Download known, static VMTX files
+			common.LogTxtHandler().Info("Image type identified as VMTX. Downloading VMTX files...")
 			downloadList = []string{".nvram", ".vmsd", ".vmtx", ".vmxf"}
 			for _, item := range downloadList {
 				artifactPath = downloadPath + imageName + item // builds URI path for each expected file type
+				common.LogTxtHandler().Info("Downloading: " + artifactPath)
+
 				resultMsg, err = operations.RetrieveArtifact(artifactPath)
 				if err != nil {
+					common.LogTxtHandler().Error("Error downloading " + artifactPath)
+					common.LogTxtHandler().Error(resultMsg)
 					break
 				}
 			}
@@ -529,6 +581,7 @@ func DownloadArtifacts(serverApi, token, downloadUri, outputDir string) string {
 			if err == nil {
 				// Download Disk File(s)
 				checkFile := imageName + ".vmdk"
+				common.LogTxtHandler().Info("Checking for existance of disk file: " + checkFile)
 				task = "Unnumbered virtual disk file check"
 				resultMsg, err = operations.CheckFileAndDownload(checkFile, downloadPath, task)
 				if err != nil {
@@ -545,6 +598,7 @@ func DownloadArtifacts(serverApi, token, downloadUri, outputDir string) string {
 				
 				// Loop for disk -ctk files ----------------------------->
 				checkFile = imageName + "-ctk.vmdk"
+				common.LogTxtHandler().Info("Checking for existance of disk file: " + checkFile)
 				task = "Unnumbered virtual ctk disk file check"
 				resultMsg, err = operations.CheckFileAndDownload(checkFile, downloadPath, task)
 				if err != nil {
@@ -560,6 +614,7 @@ func DownloadArtifacts(serverApi, token, downloadUri, outputDir string) string {
 				
 				// Loop for VM data disk (-flat) files ----------------------------->
 				checkFile = imageName + "-flat.vmdk"
+				common.LogTxtHandler().Info("Checking for existance of disk file: " + checkFile)
 				task = "Unnumbered virtual data disk file check"
 				resultMsg, err = operations.CheckFileAndDownload(checkFile, downloadPath, task)
 				if err != nil {
@@ -575,6 +630,7 @@ func DownloadArtifacts(serverApi, token, downloadUri, outputDir string) string {
 				
 				// Download associated vmware.log, if it exists  -------------------->
 				checkFile = "vmware.log"
+				common.LogTxtHandler().Info("Checking for existance of file: " + checkFile)
 				task = "vmware.log file check"
 				resultMsg, err = operations.CheckFileAndDownload(checkFile, downloadPath, task)
 				if err != nil {
