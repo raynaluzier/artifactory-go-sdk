@@ -249,7 +249,7 @@ func FilterListByProps(listArtifUris, listKvProps []string) (string, error) {
 				foundItem = filteredList[0]
 				common.LogTxtHandler().Info("FOUND ITEM: " + filteredList[0])
 				return foundItem, nil
-			} else {
+			} else if len(filteredList) > 1 {
 				// For each artifact in the filter list, we grab it's 'created' date and add that artifact and date to an array of maps
 				common.LogTxtHandler().Warn("More than one artifact with matching properties was found.")
 				common.LogTxtHandler().Warn("Getting latest artifact...")
@@ -259,6 +259,10 @@ func FilterListByProps(listArtifUris, listKvProps []string) (string, error) {
 					common.LogTxtHandler().Error("Error getting latest created date.")
 				}
 				return foundItem, nil
+			} else {
+				err := errors.New("Artifacts found with at least one matching property. But no artifact was found with all properties.")
+				common.LogTxtHandler().Error("Artifacts found with at least one matching property. But no artifact was found with all properties.")
+				return "", err
 			}
 		} else if len(foundList) == 1 {
 			if numProps == len(foundList) {
