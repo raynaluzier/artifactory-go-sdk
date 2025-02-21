@@ -2,7 +2,6 @@ package tasks
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -51,7 +50,6 @@ func GetImageDetails(serverApi, token, artifName, ext string, kvProps []string) 
 		if err != nil {
 			strErr = fmt.Sprintf("%v\n", err)
 			common.LogTxtHandler().Error("Error filtering artifacts by file type - " + strErr)
-			log.Fatal("Error filtering artifacts by file type - " + strErr)
 		}
 	} else {
 		// if no props passed, but more than one artif is in list, return latest
@@ -157,12 +155,11 @@ func TeardownTest(serverApi, token string) (string) {
 	}
 }
 
-func UploadGeneralArtifact(serverApi, token, logLevel, sourcePath, artifPath, fileName, folderName string) (string, error) {
+func UploadGeneralArtifact(serverApi, token, sourcePath, artifPath, fileName, folderName string) (string, error) {
 	// Single file
 	// 'folderName' may be the same as the image name, if wanting to place the artifact with a given image
 	util.ServerApi = serverApi
 	util.Token	   = token
-	util.Logging   = logLevel
 
 	common.LogTxtHandler().Info(">>> Beginning validation and upload of "  + fileName)
 	sourcePath = common.CheckAddSlashToPath(sourcePath)
@@ -184,11 +181,10 @@ func UploadGeneralArtifact(serverApi, token, logLevel, sourcePath, artifPath, fi
 	}
 }
 
-func DownloadGeneralArtifact(serverApi, token, logLevel, outputDir, artifPath, fileName, task string) (string, error) {
+func DownloadGeneralArtifact(serverApi, token, outputDir, artifPath, fileName, task string) (string, error) {
 	util.ServerApi = serverApi
 	util.Token	   = token
 	util.OutputDir = outputDir
-	util.Logging   = logLevel
 	common.LogTxtHandler().Info(">>> Beginning validation and download of "  + fileName)
 
 	serverApi = common.TrimEndSlashUrl(serverApi)
@@ -209,7 +205,7 @@ func DownloadGeneralArtifact(serverApi, token, logLevel, outputDir, artifPath, f
 	}
 }
 
-func UploadArtifacts(serverApi, token, logLevel, imageType, imageName, sourceDir, targetDir, fileSuffix string) (string) {
+func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDir, fileSuffix string) (string) {
 	// Image files will placed in a folder named after the image, so no need to define a folder specifically for the image
 	// targetDir --> /repo/ --> files will be in path: /repo/image1234/image1234.ova, for example
 
@@ -217,7 +213,6 @@ func UploadArtifacts(serverApi, token, logLevel, imageType, imageName, sourceDir
 	// targetDir ex: /repo-name/folder - We'll check for/add ending slash if needed
 	util.ServerApi = serverApi
 	util.Token	   = token
-	util.Logging   = logLevel
 	var fileName string
 	var err error
 	var fileTypes []string
@@ -432,10 +427,9 @@ func UploadArtifacts(serverApi, token, logLevel, imageType, imageName, sourceDir
 	}
 }
 
-func SetProps(serverApi, token, logLevel, artifUri string, kvProps []string) (string, error) {
+func SetProps(serverApi, token, artifUri string, kvProps []string) (string, error) {
 	util.ServerApi = serverApi
 	util.Token	   = token
-	util.Logging   = logLevel
 
 	common.LogTxtHandler().Debug("UPDATING PROPERTIES OF ARTIFACT...")
 
