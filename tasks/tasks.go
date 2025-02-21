@@ -2,6 +2,7 @@ package tasks
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -13,10 +14,9 @@ import (
 	"github.com/raynaluzier/artifactory-go-sdk/util"
 )
 
-func GetImageDetails(serverApi, token, logLevel, artifName, ext string, kvProps []string) (string, string, string, string, error) {
+func GetImageDetails(serverApi, token, artifName, ext string, kvProps []string) (string, string, string, string, error) {
 	util.ServerApi = serverApi
 	util.Token     = token
-	util.Logging   = logLevel
 	var artifactUri string
 	var strErr string
 
@@ -51,6 +51,7 @@ func GetImageDetails(serverApi, token, logLevel, artifName, ext string, kvProps 
 		if err != nil {
 			strErr = fmt.Sprintf("%v\n", err)
 			common.LogTxtHandler().Error("Error filtering artifacts by file type - " + strErr)
+			log.Fatal("Error filtering artifacts by file type - " + strErr)
 		}
 	} else {
 		// if no props passed, but more than one artif is in list, return latest
