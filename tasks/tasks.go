@@ -454,7 +454,7 @@ func SetProps(serverApi, token, artifUri string, kvProps []string) (string, erro
 	}
 }
 
-func DownloadArtifacts(serverApi, token, logLevel, downloadUri, outputDir string) string {
+func DownloadArtifacts(serverApi, token, downloadUri, outputDir string) string {
 	// Takes in download URI that corresponds to OVA, OVF, or VMTX file in Artifactory; 
 	// Will then determine other expected associated artifacts and download those as well
 		// Appends an incrementing numeric value (string; up to 15) to disk type and checks for existance of disk file
@@ -463,7 +463,6 @@ func DownloadArtifacts(serverApi, token, logLevel, downloadUri, outputDir string
 
 	util.ServerApi = serverApi
 	util.Token     = token
-	util.Logging   = logLevel
 	
 	common.LogTxtHandler().Info("DOWNLOADING ARTIFACT(S) FROM ARTIFACTORY...")
 	
