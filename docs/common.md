@@ -105,9 +105,23 @@ Some artifact operations can take either the Artifact's URI or it's download URI
 | downloadUri | Download URI of the artifact  | string | TRUE     |
 
 #### Outputs
-| Name        | Description                  | Type     |
-|-------------|------------------------------|----------|
+| Name      | Description                  | Type     |
+|-----------|------------------------------|----------|
 | artifUri  | Resulting URI of the artifact  | string   |
+
+
+## FormatServerForDownloadUri
+When we're building the download URI from the server API address and file name, we need to strip off the 'api' or 'api/' (if it exists) so the download URI is formed properly.
+
+#### Inputs
+| Name       | Description                   | Type   | Required |
+|------------|-------------------------------|--------|:--------:|
+| serverApi  | URL of the Artifactory server | string | TRUE     |
+
+#### Outputs
+| Name                     | Description                                                      | Type     |
+|--------------------------|------------------------------------------------------------------|----------|
+| trimmedServer/serverApi  | Resulting URL of the Artifactory server without 'api' or 'api/'  | string   |
 
 
 ## SearchForExactString

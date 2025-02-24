@@ -1,14 +1,11 @@
 package main
 
 import (
-	_ "fmt"
-	_ "log"
 	"os"
 
 	_ "github.com/raynaluzier/artifactory-go-sdk/common"
 	_ "github.com/raynaluzier/artifactory-go-sdk/operations"
 	_ "github.com/raynaluzier/artifactory-go-sdk/search"
-	_ "github.com/raynaluzier/artifactory-go-sdk/tasks"
 	"github.com/raynaluzier/artifactory-go-sdk/util"
 )
 
@@ -19,12 +16,16 @@ func main(){
 	serverApi 	:= os.Getenv("ARTIFACTORY_SERVER")
 	token 		:= os.Getenv("ARTIFACTORY_TOKEN")
 	logLevel 	:= os.Getenv("LOGGING")
-	//outputDir 	:= os.Getenv("OUTPUTDIR")   //c:\lab\output-testing\ or /lab/output-testing
+	//outputDir 	:= //os.Getenv("OUTPUTDIR")   //c:\lab\output-testing\ or /lab/output-testing
 
 	util.ServerApi = serverApi
 	util.Token     = token
 	util.Logging   = logLevel
 	//util.OutputDir = outputDir
 	// -------------------------------------------------------------------------
+	
+
+
+
 
 }

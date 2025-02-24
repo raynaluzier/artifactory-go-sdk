@@ -593,7 +593,10 @@ func CheckFileAndDownload(checkFile, downloadPath, task string) (string, error) 
 	// downloadPath - parsed Artifactory path to artifact without the artifact file name
 	// task - what file check we are performing
 	var resultMsg string
+	common.LogTxtHandler().Debug("Download Path: " + downloadPath)
 	statusCode, err := GetArtifact(downloadPath + checkFile)
+	common.LogTxtHandler().Debug("Status code of GetArtifact: " + statusCode)
+
 	if statusCode == "200" {
 		// If we found the artifact, download it...
 		resultMsg, err = RetrieveArtifact(downloadPath + checkFile)
@@ -601,10 +604,13 @@ func CheckFileAndDownload(checkFile, downloadPath, task string) (string, error) 
 			common.LogTxtHandler().Error(resultMsg)
 			return "Failed", err
 		}
-	} else {
 		common.LogTxtHandler().Info("End of " + task)
+		return "Success", nil
+	} else {
+		common.LogTxtHandler().Error("Artifact not found. Check the server path or artifact name.")
+		err := errors.New("Artifact not found. Check the server path or artifact name.")
+		return "Failed", err
 	}
-	return "Success", nil
 }
 
 func CheckFileLoopAndDownload(imageName, downloadPath, extString, task string) (string, error) {

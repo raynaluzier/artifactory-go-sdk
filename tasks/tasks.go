@@ -187,6 +187,7 @@ func DownloadGeneralArtifact(serverApi, token, outputDir, artifPath, fileName, t
 	util.OutputDir = outputDir
 	common.LogTxtHandler().Info(">>> Beginning validation and download of "  + fileName)
 
+	serverApi = common.FormatServerForDownloadUri(serverApi)
 	serverApi = common.TrimEndSlashUrl(serverApi)
 	downloadPath := serverApi + artifPath
 	downloadPath = common.CheckAddSlashToPath(downloadPath)

@@ -94,6 +94,20 @@ func SetArtifUriFromDownloadUri(downloadUri string) string {
 	return artifUri
 }
 
+func FormatServerForDownloadUri(serverApi string) string {
+	// When we're building the download URI rather than providing it, we need to trim "api" from the server path
+	// The order of the strings check matters
+	if strings.Contains(serverApi, "api/") {						    	// http://server.com:8081/artfactory/api/
+		trimmedServer := strings.TrimSuffix(serverApi, "api/")		        // http://server.com:8081/artfactory/
+		return trimmedServer
+	} else if strings.Contains(serverApi, "api") {
+		trimmedServer := strings.TrimSuffix(serverApi, "api")
+		return trimmedServer
+	} else {
+		return serverApi
+	}
+}
+
 func SearchForExactString(searchTerm, inputStr string) (bool, error) {
 	// For example: "win2022" will return true if input string is "win2022", false if "win2022-iis"
 	result, err := regexp.MatchString("(?sm)^" + searchTerm + "$", inputStr)
