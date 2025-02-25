@@ -249,12 +249,6 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 			} else {
 				return "Successfully uploaded: " + fileName
 			}
-			
-			/*if err != nil {
-				strErr := fmt.Sprintf("%v\n", err)
-				common.LogTxtHandler().Error(result + " - " + strErr)
-			}
-			return "End of upload process"*/
 
 		} else if imageType == "ovf" {
 			fileTypes = []string{".ovf", ".mf"}
@@ -282,11 +276,6 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 				} else {
 					common.LogTxtHandler().Info("Successfully uploaded: " + fileName)
 				}
-				
-				/*if err != nil {
-					strErr := fmt.Sprintf("%v", err)
-					common.LogTxtHandler().Error(result + " - " + strErr)
-				}*/
 			}
 
 			// If there were no issues with the main files, we'll continue on
@@ -362,11 +351,6 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 				} else {
 					common.LogTxtHandler().Info("Successfully uploaded: " + fileName)
 				}
-				
-				/*if err != nil {
-					strErr := fmt.Sprintf("%v\n", err)
-					common.LogTxtHandler().Error(result + " - " + strErr)
-				}*/
 			}
 
 			// If there were no issues with the main files, we'll continue on
@@ -415,11 +399,6 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 					} else {
 						common.LogTxtHandler().Info("Successfully uploaded file: " + fileName)
 					}
-
-					/*if err != nil {
-						strErr := fmt.Sprintf("%v\n", err)
-						common.LogTxtHandler().Error(result + " - " + strErr)
-					}*/
 				}
 
 				// Search and upload -ctk disk files ----------------------------------->
@@ -443,11 +422,6 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 				} else {
 					common.LogTxtHandler().Info("Successfully uploaded file: " + fileName)
 				}
-
-				/*if err != nil {
-					strErr := fmt.Sprintf("%v\n", err)
-					common.LogTxtHandler().Error(result + " - " + strErr)
-				}*/
 
 				// Search and upload numbered -ctk disk files
 				for i := 1; i < 15; i++ {
@@ -474,11 +448,6 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 					} else {
 						common.LogTxtHandler().Info("Successfully uploaded file: " + fileName)
 					}
-
-					/*if err != nil {
-						strErr := fmt.Sprintf("%v\n", err)
-						common.LogTxtHandler().Error(result + " - " + strErr)
-					}*/
 				}
 				
 				// Search and upload -flat disk files ----------------------------------->
@@ -492,11 +461,6 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 				}
 				result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
 				common.LogTxtHandler().Info(result)
-
-				/*if err != nil {
-					strErr := fmt.Sprintf("%v\n", err)
-					common.LogTxtHandler().Error(result + " - " + strErr)
-				}*/
 
 				if result == "Failed" && err == nil { 
 					common.LogTxtHandler().Debug("File: " + fileName + " not found.")
@@ -522,11 +486,6 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 
 					result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
 					common.LogTxtHandler().Info(result)
-
-					/*if err != nil {
-						strErr := fmt.Sprintf("%v\n", err)
-						common.LogTxtHandler().Error(result + " - " + strErr)
-					}*/
 
 					if result == "Failed" && err == nil { 
 						common.LogTxtHandler().Debug("File: " + fileName + " not found.")
