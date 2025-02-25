@@ -78,6 +78,8 @@ The Global Variables `util.ServerApi` and `util.Token` are set by the function's
 
 Once the variables are set, the source file is verified that it exists in the directory and if so, uploaded from the provided source path to the target Artifactory path (`/repo/folder/path`). The result string of "Success" or "Failed" is returned.
 
+**File names and Artifactory path are both CASE SENSITIVE.** When we validate the provided file name against the files in the source path, we are able to set both the file name and files in the directory to LOWERCASE before comparing them. However, we have no way to do something similar with the Artifactory path. This is a behavior of the Artifactory API and not something we can control. 
+
 #### Inputs
 | Name        | Description                                                                     | Type     | Required |
 |-------------|---------------------------------------------------------------------------------|----------|:--------:|
@@ -101,6 +103,8 @@ Takes in the Artifactory server's API address, Artifactory Identity token, desir
 The Global Variables `util.ServerApi`, `util.Token`, and `util.OutputDir` are set by the function's inputs so these values can be used by the subsequent function calls without having to pass them in every time.
 
 Once the variables are set, the desired file is verified that it exists in the Artifactory path (ex: /repo/opt-folder/), and if so, it's downloaded to the output directory. The result string of "Success" or "Failed" is returned.
+
+**File names within Artifactory and Artifactory path are both CASE SENSITIVE.** This is a behavior of the Artifactory API and not something we can control. 
 
 #### Inputs
 | Name        | Description                                                                     | Type     | Required |

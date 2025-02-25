@@ -7,6 +7,8 @@ Searches for an artifact by one or more property names and optionally values, if
 - Multiple properties with values will also be separated by a required ampersand ('&'), handled by the function, and should be passed into the function in the following format of 'propKey=propValue'.
 The result will be something like 'release&channel' or 'release=stable&channel=windows-prod-iis'.
 
+**Property keys/values are CASE SENSITIVE.**
+
 #### Inputs
 | Name        | Description                                           | Type     | Required |
 |-------------|-------------------------------------------------------|----------|:--------:|
@@ -19,7 +21,7 @@ The result will be something like 'release&channel' or 'release=stable&channel=w
 
 
 ## GetArtifactsByName
-Searches for artifacts by full or partial artifact name. The search is CASE INSENSITIVE.
+Searches for artifacts by full or partial artifact name. **The search is CASE INSENSITIVE.**
 
 #### Inputs
 | Name       | Description                                         | Type     | Required |
@@ -36,7 +38,7 @@ Searches for artifacts by full or partial artifact name. The search is CASE INSE
 ## FilterListByFileType
 Filters a list of artifact URIs by desired file type. If no extension is provided, the default filter will be VMware Templates (.vmtx). If file extension provided doesn't include a leading '.', it will be added.
 
-This function would primarily be used in conjunction with GetArtifactsByName as part of the artifact filtering process. 
+This function would primarily be used in conjunction with `GetArtifactsByName` as part of the artifact filtering process. 
 
 #### Inputs
 | Name          | Description                           | Type      | Required |

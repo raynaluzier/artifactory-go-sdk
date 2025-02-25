@@ -552,10 +552,17 @@ func GetArtifact(downloadUri string) (string, error) {
 func CheckFileAndUpload(items []os.DirEntry, sourceDir, targetDir, fileName, imageName string) (string, error) {
 	// sourceDir ex: c:\\lab\\ or /lab/ - assumes ending slash
 	// targetDir ex: /repo-name/folder/ - assumes ending slash
-	var sourcePath, targetPath string
+	var sourcePath, targetPath, downloadUri string
+
 	for _, item := range items {
 		common.LogTxtHandler().Debug("Checking " + fileName + " against " + item.Name() + "...")
-		if item.Name() == fileName {
+		// File comparison is case-sensitive; it will fail if they don't match.
+		// So we'll convert them both to lowercase first...
+		itemNameLower := strings.ToLower(item.Name())
+		fileNameLower := strings.ToLower(fileName)
+
+		if itemNameLower == fileNameLower {  //item.Name() == fileName {
+			common.LogTxtHandler().Debug("File matches...preparing to upload.")
 			sourcePath = sourceDir + fileName
 
 			if imageName != "" {
@@ -568,23 +575,28 @@ func CheckFileAndUpload(items []os.DirEntry, sourceDir, targetDir, fileName, ima
 			common.LogTxtHandler().Debug("Source Path: " + sourcePath)
 			common.LogTxtHandler().Debug("Target Path: " + targetPath)
 
-			downloadUri, err := UploadFile(sourcePath, targetPath, suff)
+			downloadUri, err = UploadFile(sourcePath, targetPath, suff)
 
 			if err != nil {
 				strErr := fmt.Sprintf("%v\n", err)
 				common.LogTxtHandler().Error("Error uploading: " + fileName + " to: " + targetPath + " - " + strErr)
-			} else {
+
+			} else if downloadUri != "" {
 				common.LogTxtHandler().Info("File: " + fileName + " uploaded.")
 				common.LogTxtHandler().Info("Download URI: " + downloadUri)
 			}
+			break
 		} else {
 			common.LogTxtHandler().Debug("Checking next file...")
 		}
 	}
-	if err != nil {
-		return "Failed", err
+
+	if downloadUri != "" {
+		return "Success", nil
+	} else if downloadUri == "" && err == nil {
+		return "Failed", nil
 	} else {
-		return "Success", nil   // Doesn't mean a file was found; just that there was no error during checks
+		return "Failed", err
 	}
 }
 

@@ -16,6 +16,8 @@ Takes no inputs
 ## GetDownloadUri
 Requires full path to the artifact, including artifact name with extension. This function gets the artifact details and will return the download URI used to retrieve (download) the artifact.
 
+**Artifact URIs are CASE SENSITIVE.**
+
 #### Inputs
 | Name       | Description                                              | Type    | Required |
 |------------|----------------------------------------------------------|---------|:--------:|
@@ -31,6 +33,8 @@ Requires full path to the artifact, including artifact name with extension. This
 ## GetArtifactNameFromUri
 Takes in an artifact URI, parses, and returns the name of the artifact.
 
+**Artifact URIs are CASE SENSITIVE.**
+
 #### Inputs
 | Name       | Description                                              | Type    | Required |
 |------------|----------------------------------------------------------|---------|:--------:|
@@ -44,6 +48,8 @@ Takes in an artifact URI, parses, and returns the name of the artifact.
 
 ## GetCreateDate
 Requires full path to the artifact, including artifact name with extension. This function gets the artifact details and will return the string date `created`.
+
+**Artifact URIs are CASE SENSITIVE.**
 
 #### Inputs
 | Name       | Description                                              | Type    | Required |
@@ -59,6 +65,8 @@ Requires full path to the artifact, including artifact name with extension. This
 
 ## RetrieveArtifact
 This function gets the artifact via the provided Download URI and copies it to the output directory path specified in the `util.OutputDir` Global Variable. If no output directory path was provided, the artifact will be downloaded to the user's HOME directory.
+
+**Download URIs are CASE SENSITIVE.**
 
 #### Inputs
 | Name                  | Description                                                   | Type    | Required |
@@ -81,11 +89,11 @@ The target filename will match the source file as it exists in the source direct
 `fileSuffix` is an optional placeholder for potential distinguishing values such as versions, etc. where a common artifact identifier (such as 'win2022') is used for every build and some other distinguishing value should be appended for uniquiness with "-" as the separator ('win2022-1.1.1.iso'). If an empty string ("") is passed, then this will be ignored.
 
 #### Inputs
-| Name          | Description                                                           | Type    | Required |
-|---------------|-----------------------------------------------------------------------|---------|:--------:|
-| sourcePath  | Full file path where will be sourced from; **Needs proper escape chars  | string  | TRUE     |
-| targetPath  | Target repo and folder destination of the artifact                      | string  | TRUE     |
-| fileSuffix  | Placeholder for distinguishing values like dates, versions, etc         | string  | *FALSE   |
+| Name          | Description                                                             | Type    | Required |
+|---------------|-------------------------------------------------------------------------|---------|:--------:|
+| sourcePath    | Full file path where will be sourced from; **Needs proper escape chars  | string  | TRUE     |
+| targetPath    | Target repo and folder destination of the artifact                      | string  | TRUE     |
+| fileSuffix    | Placeholder for distinguishing values like dates, versions, etc         | string  | *FALSE   |
                 *If not using a file suffix, an empty string ("") should be passed
 
 #### Outputs
@@ -97,6 +105,8 @@ The target filename will match the source file as it exists in the source direct
 
 ## DeleteArtifact
 Takes in an artifact's URI and executes a delete operation against it.
+
+**Artifact URIs are CASE SENSITIVE.**
 
 #### Inputs
 | Name          | Description                                              | Type    | Required |
@@ -113,6 +123,8 @@ Takes in an artifact's URI and executes a delete operation against it.
 ## GetLatestArtifactFromList
 Takes in list of artifact URIs, gets the created date for each of them, and returns the latest artifact.
 
+**Artifact URIs are CASE SENSITIVE.**
+
 #### Inputs
 | Name   | Description              | Type      | Required |
 |--------|--------------------------|-----------|:--------:|
@@ -128,6 +140,8 @@ Takes in list of artifact URIs, gets the created date for each of them, and retu
 ## GetArtifact
 Takes in the download URI of an artifact and makes a 'GET' REST API call against that URI. A status code of "200" is returned if it exists or "404" if it doesn't.
 
+**Download URIs are CASE SENSITIVE.**
+
 #### Inputs
 | Name        | Description                                           | Type    | Required |
 |-------------|-------------------------------------------------------|---------|:--------:|
@@ -140,9 +154,11 @@ Takes in the download URI of an artifact and makes a 'GET' REST API call against
 
 
 ## CheckFileAndUpload
-Takes in a list of files pulled from the source directory (collected by the parent function, `UploadArtifacts`); for each item name in the list, checks it against the target filename. If the file exists, the filename is appended to the source path. The target path is updated to include the image name as the target folder. Then the file is uploaded to Artifactory. If successful, the artifact's download URI is output and the string-based result of the operation is returned as "Success".
+Takes in a list of files pulled from the source directory (collected by the parent function, `UploadArtifacts` or `UploadGeneralArtifact`); for each item name in the list, checks it against the target filename. If the file exists, the filename is appended to the source path. The target path is updated to include the image name as the target folder. Then the file is uploaded to Artifactory. If successful, the artifact's download URI is output and the string-based result of the operation is returned as "Success". If there was an error uploading the file OR the file wasn't found, "Failed" is returned.
 
-This supports and is called by the `UploadArtifacts` function.
+Because the file comparison is **CASE SENSITIVE**, we set the item name and file name both to lowercase before performing the file check. 
+
+This supports and is called by the `UploadArtifacts` and `UploadGeneralArtifact` functions.
 
 #### Inputs
 | Name      | Description                                                  | Type           | Required |
@@ -162,7 +178,9 @@ This supports and is called by the `UploadArtifacts` function.
 ## CheckFileAndDownload
 Takes the Artifactory artifact path (ex: /repo/folder) and image filename with extension, then does a 'GET' REST API call to Artifactory for the item. If the file is found, a status code of "200" is returned and the artifact is downloaded (it uses the output directory set as a global variable). Then the function returns a string result of "Success" back to the calling function if the download completed without error. Otherwise, "Failed" is returned.
 
-This supports and is called by the `DownloadArtifacts` function.
+This supports and is called by the `DownloadArtifacts` and `DownloadGeneralArtifact` functions.
+
+**The file name and Artifactory path are CASE SENSITIVE.**
 
 #### Inputs
 | Name         | Description                                                           | Type    | Required |
@@ -184,7 +202,9 @@ The disk file name is appended to the download path to form a URI in Artifactory
 
 If, as the disk number increments and is checked, that numbered disk file isn't found, we assume that we've reached the end of the number of disks that are attached to the VM Template and the process breaks.
 
-This supports and is called by the `DownloadArtifacts` function. 
+This supports and is called by the `DownloadArtifacts` and `DownloadGeneralArtifact` functions.
+
+**The file name and Artifactory path are CASE SENSITIVE.**
 
 #### Inputs
 | Name         | Description                                                           | Type    | Required |

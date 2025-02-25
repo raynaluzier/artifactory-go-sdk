@@ -29,6 +29,9 @@ Using .env File: Configure the `.env` file with the Artifactory Identity Token a
 
 Then use `os.Getenv` to set `util.ServerApi`, `util.Token`, `util.Logging`, and `util.OutputDir` respectively.
 
+## Housekeeping
+- It's important to note that Artifactory property key/values, artifact URIs, download URIs, Artifactory paths (/repo/folder/...), and file names are CASE SENSITIVE. There are a few exceptions, however, it's best to assume case sensitivity for successful outcomes. This is a behavior of the Artifactory API and not something we can control. 
+
 ## About
 This SDK is broken into several packages: `common`, `operations`, `search`, `tasks`, and `util` based on the underlying behavior of the functions. Some functions are specifically related to certain behaviors so they have been grouped together into packages as described below. 
 

@@ -171,13 +171,16 @@ func UploadGeneralArtifact(serverApi, token, sourcePath, artifPath, fileName, fo
 	items, _ := os.ReadDir(sourcePath)            // Get list of files in Dir to check against our file
 	result, err := operations.CheckFileAndUpload(items, sourcePath, artifPath, fileName, folderName)
 	
-	if err != nil {
+	if result == "Success" {
+		common.LogTxtHandler().Info("Successfully uploaded file: " + fileName)
+		return result, nil
+	} else if result == "Failed" && err == nil {
+		common.LogTxtHandler().Info("File not found.")
+		return result, nil
+	} else {
 		strErr := fmt.Sprintf("%v\n", err)
 		common.LogTxtHandler().Error("Error uploading file: " + fileName + " - " + strErr)
 		return result, err
-	} else {
-		common.LogTxtHandler().Debug("Successfully uploaded file: " + fileName)
-		return result, nil
 	}
 }
 

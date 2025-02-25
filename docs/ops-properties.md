@@ -3,7 +3,7 @@
 ## GetArtifactPropValues
 Takes in the URI of the artifact, plus one or more property keys, and returns the values for only the properties included in the URI for the given artifact. Meaning, the artifact can have more properties assigned to it, but those values will not be returned unless they were part of the request.
 
-Searches are CASE SENSITIVE.
+**Searches are CASE SENSITIVE.**
 
 The list of properties sent over in the URI path must be separated by commas (',') which we handle before making the REST API call.
 
@@ -26,6 +26,8 @@ The result is whatever properties we passed and their values, which can be anyth
 Takes in the URI of a given artifact and pulls all of the properties and their values assigned to the artifact (versus just select properties, as above).
 
 The result is whatever properties exist and their values, which can be anything, so the returned JSON data is considered unstructured. Therefore, we capture each key `Name` and `Value` in a custom `prop` struct called `properties` that will be returned from the function of type interface{}.
+
+**Searches are CASE SENSITIVE.**
 
 #### Inputs
 | Name          | Description                                              | Type      | Required |
@@ -52,6 +54,8 @@ For example: If 3 property key/value pairs were input as filters, we would expec
 - If there's only one artifact in the filteredList, this will be returned. 
 - If multiple artifacts are still present in the filteredList, the created date for each artifact will be grabbed and the latest artifact will be returned.
 
+**Artifact URIs and Property key/values are CASE SENSITIVE.**
+
 #### Inputs
 | Name          | Description                               | Type      | Required |
 |---------------|-------------------------------------------|-----------|:--------:|
@@ -69,7 +73,7 @@ For example: If 3 property key/value pairs were input as filters, we would expec
 Takes in the URI of a given artifact and one or more property key/value pairs and assigns them to the given artifact. If more than one property key/value is supplied, they must be separated by a semi-colon 
 (';'), which is handled before making the REST API call.
 
-Inputs are CASE SENSITIVE.
+**Inputs are CASE SENSITIVE.**
 
 Special characters are disallowed: 	)( }{ ][ *+^$\/~`!@#%&<>;, and the SPACE character
 
@@ -89,7 +93,7 @@ Special characters are disallowed: 	)( }{ ][ *+^$\/~`!@#%&<>;, and the SPACE cha
 ## DeleteArtifactProps
 Takes in the URI of a given artifact and one or more property keys and removes them from the given artifact. If more than one property key is supplied, they must be separated by a comma (','), which is handled before making the REST API call.
 
-Inputs are CASE SENSITIVE.
+**Inputs are CASE SENSITIVE.**
 
 If a property is provided that doesn't exist (which includes incorrectly cased properties), the API ignores this and will return a successful response.
 
