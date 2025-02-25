@@ -128,7 +128,7 @@ Takes in the Artifactory server's API address, Artifactory Identity token, image
 
 The Global Variables `util.ServerApi` and `util.Token` are set by the function's inputs so these values can be used by the subsequent function calls without having to pass them in every time.
 
-Once the variables are set, the image type and image name are evaluated to determined the expected files that should exist. Disk files are evaluated for up to 15 disks. 
+Once the variables are set, the image type and image name are evaluated to determined the expected files that should exist. There are a variety of different disk numbering formats and types that are accounted for, and each are evaluated for up to 15 disks per type.
 
 The files are validated against the source directory and if they exist, they are uploaded from the provided source path (`c:\\lab` or `/lab` to the target path (`/repo/folder/path`) into a folder based on the image name (so /repo/opt-folder/image1234/image1234.ova, etc.). As each file is successfully uploaded, the download URI is output in the logs. Upon completion, a string-based status of the operation is returned.
 

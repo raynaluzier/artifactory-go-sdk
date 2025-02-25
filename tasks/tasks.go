@@ -219,7 +219,7 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 	util.Token	   = token
 	var fileName string
 	var err error
-	var fileTypes []string
+	var fileTypes, failedFiles, notFoundFiles []string
 	imageType = strings.ToLower(imageType)
 
 	if imageName != "" && sourceDir != "" && targetDir != "" {
@@ -240,11 +240,21 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 			result, err := operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
 			common.LogTxtHandler().Info(result)
 
-			if err != nil {
+			if result == "Failed" && err == nil {
+				common.LogTxtHandler().Error("File: " + fileName + " not found.")
+				return "File: " + fileName + " not found"
+			} else if result == "Failed" && err != nil {
+				strErr := fmt.Sprintf("%v", err)
+				return "Error uploading file: " + fileName + " - " + strErr
+			} else {
+				return "Successfully uploaded: " + fileName
+			}
+			
+			/*if err != nil {
 				strErr := fmt.Sprintf("%v\n", err)
 				common.LogTxtHandler().Error(result + " - " + strErr)
 			}
-			return "End of upload process"
+			return "End of upload process"*/
 
 		} else if imageType == "ovf" {
 			fileTypes = []string{".ovf", ".mf"}
@@ -259,35 +269,73 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 
 				result, err := operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
 				common.LogTxtHandler().Info(result)
-				if err != nil {
-					strErr := fmt.Sprintf("%v\n", err)
-					common.LogTxtHandler().Error(result + " - " + strErr)
-				}
-			}
 
-			// Search and upload related OVF-based disk files
-			for i := 1; i < 15; i++ {
-				common.LogTxtHandler().Debug("Starting search for disk files. Up to 15 possible disks will be checked for.")
-				strI := strconv.Itoa(i)
-				if fileSuffix != "" {
-					fileName = imageName + "-" + fileSuffix + "-disk" + strI + ".vmdk"   // changing -disk-# to -disk#
-					common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+				if result == "Failed" && err == nil {
+					common.LogTxtHandler().Error("File: " + fileName + " not found.")
+					notFoundFiles = append(notFoundFiles, fileName)
+					break  // if one of the core files isn't found, we're stopping here
+				} else if result == "Failed" && err != nil {
+					strErr := fmt.Sprintf("%v", err)
+					common.LogTxtHandler().Error("Error uploading file: " + fileName + " - " + strErr)
+					failedFiles = append(failedFiles, fileName)
+					break  // if one of the core files isn't uploaded, we're stopping here
 				} else {
-					fileName = imageName + "-disk" + strI + ".vmdk"					  // changing -disk-# to -disk#
-					common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+					common.LogTxtHandler().Info("Successfully uploaded: " + fileName)
 				}
-
-				result, err := operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
-
-				if err != nil {
-					strErr := fmt.Sprintf("%v\n", err)
+				
+				/*if err != nil {
+					strErr := fmt.Sprintf("%v", err)
 					common.LogTxtHandler().Error(result + " - " + strErr)
-				}
+				}*/
 			}
-			return "End of upload process"
+
+			// If there were no issues with the main files, we'll continue on
+			// But we'll stop checking files if we run into issues
+			if len(notFoundFiles) == 0 && len(failedFiles) == 0 {
+				// Search and upload related OVF-based disk files
+				for i := 1; i < 15; i++ {
+					common.LogTxtHandler().Debug("Starting search for disk files. Up to 15 possible disks will be checked for.")
+					strI := strconv.Itoa(i)
+					if fileSuffix != "" {
+						fileName = imageName + "-" + fileSuffix + "-disk" + strI + ".vmdk"   // changing -disk-# to -disk#
+						common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+					} else {
+						fileName = imageName + "-disk" + strI + ".vmdk"					  // changing -disk-# to -disk#
+						common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+					}
+
+					result, err := operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
+					common.LogTxtHandler().Info(result)
+
+					if result == "Failed" && err == nil && i == 1 {  // if the first disk file isn't found, there's an issue
+						common.LogTxtHandler().Error("Unable to locate first disk file: " + fileName)
+						notFoundFiles = append(notFoundFiles, fileName)
+						break
+					} else if result == "Failed" && err == nil {     // if subsequent disk files aren't found, the machine probably doesn't have any more disks
+						common.LogTxtHandler().Info("File: " + fileName + " not found.")
+						break
+					} else if result == "Failed" && err != nil {
+						strErr := fmt.Sprintf("%v", err)
+						common.LogTxtHandler().Error("Error uploading file: " + fileName + " - " + strErr)
+						failedFiles = append(failedFiles, fileName)
+						break
+					} else {
+						common.LogTxtHandler().Info("Successfully uploaded file: " + fileName)
+					}
+				}	
+			}
+
+			if len(failedFiles) > 0 {
+				return "Errors uploading one or more image files."
+			} else if len(notFoundFiles) > 0 {
+				return "One or more image files not found."
+			} else {
+				return "End of upload process"
+			}
+			
 		} else if imageType == "vmtx" {
 			var result string
-			fileTypes = []string{".nvram", ".vmsd", ".vmtx", ".vmxf"}
+			fileTypes = []string{".vmtx", ".nvram", ".vmsd", ".vmxf"}
 			for _, ft := range fileTypes {
 				if fileSuffix != "" {
 					fileName = imageName + "-" + fileSuffix + ft
@@ -298,121 +346,360 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 				}
 
 				result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
+				common.LogTxtHandler().Info(result)
 
-				if err != nil {
+				if result == "Failed" && err == nil {
+					common.LogTxtHandler().Error("File: " + fileName + " not found.")
+					notFoundFiles = append(notFoundFiles, fileName)
+					break  // if one of the core files isn't found, we're stopping here
+
+				} else if result == "Failed" && err != nil {
+					strErr := fmt.Sprintf("%v", err)
+					common.LogTxtHandler().Error("Error uploading file: " + fileName + " - " + strErr)
+					failedFiles = append(failedFiles, fileName)
+					break  // if one of the core files isn't uploaded, we're stopping here
+
+				} else {
+					common.LogTxtHandler().Info("Successfully uploaded: " + fileName)
+				}
+				
+				/*if err != nil {
 					strErr := fmt.Sprintf("%v\n", err)
 					common.LogTxtHandler().Error(result + " - " + strErr)
-				}
+				}*/
 			}
 
-			// Search and upload non-numbered virtual disk file
-			common.LogTxtHandler().Debug("Starting search for disk files...")
-			if fileSuffix != "" {
-				fileName = imageName + "-" + fileSuffix + ".vmdk"
-				common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-			} else {
-				fileName = imageName + ".vmdk"
-				common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-			}
-			result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
-
-			if err != nil {
-				strErr := fmt.Sprintf("%v\n", err)
-				common.LogTxtHandler().Error(result + " - " + strErr)
-			}
-
-			// Search and upload numbered disk files
-			for i := 1; i < 15; i++ {
-				common.LogTxtHandler().Debug("Starting search for numbered disk files. Up to 15 possible disks will be checked for.")
-				strI := strconv.Itoa(i)
+			// If there were no issues with the main files, we'll continue on
+			// But we'll stop checking files if we run into issues
+			// Disk files can start their numbering at different spots/formats, so we have to be careful how we define an error
+			if len(notFoundFiles) == 0 && len(failedFiles) == 0 {
+				// Search and upload non-numbered virtual disk file
+				common.LogTxtHandler().Debug("Starting search for disk files...")
 				if fileSuffix != "" {
-					fileName = imageName + "-" + fileSuffix + "_" + strI + ".vmdk"
+					fileName = imageName + "-" + fileSuffix + ".vmdk"
 					common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
 				} else {
-					fileName = imageName + "_" + strI + ".vmdk"
+					fileName = imageName + ".vmdk"
 					common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
 				}
-
 				result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
+				common.LogTxtHandler().Info(result)
 
 				if err != nil {
-					strErr := fmt.Sprintf("%v\n", err)
+					strErr := fmt.Sprintf("%v", err)
 					common.LogTxtHandler().Error(result + " - " + strErr)
 				}
-			}
 
-			// Search and upload -ctk disk files ----------------------------------->
-			// Search and upload non-numbered virtual disk file
-			if fileSuffix != "" {
-				fileName = imageName + "-" + fileSuffix + "-ctk.vmdk"
-				common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-			} else {
-				fileName = imageName + "-ctk.vmdk"
-				common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-			}
-			result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
+				// Search and upload numbered disk files
+				for i := 1; i < 15; i++ {
+					common.LogTxtHandler().Debug("Starting search for numbered disk files. Up to 15 possible disks will be checked for.")
+					strI := strconv.Itoa(i)
+					if fileSuffix != "" {
+						fileName = imageName + "-" + fileSuffix + "_" + strI + ".vmdk"
+						common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+					} else {
+						fileName = imageName + "_" + strI + ".vmdk"
+						common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+					}
 
-			if err != nil {
-				strErr := fmt.Sprintf("%v\n", err)
-				common.LogTxtHandler().Error(result + " - " + strErr)
-			}
+					result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
+					common.LogTxtHandler().Info(result)
 
-			// Search and upload numbered -ctk disk files
-			for i := 1; i < 15; i++ {
-				common.LogTxtHandler().Debug("Starting search for numbered CTK disk files. Up to 15 possible disks will be checked for.")
-				strI := strconv.Itoa(i)
+					if result == "Failed" && err == nil { 
+						common.LogTxtHandler().Debug("File: " + fileName + " not found.")
+					} else if result == "Failed" && err != nil {
+						strErr := fmt.Sprintf("%v", err)
+						common.LogTxtHandler().Error("Error uploading file: " + fileName + " - " + strErr)
+						failedFiles = append(failedFiles, fileName)
+						break
+					} else {
+						common.LogTxtHandler().Info("Successfully uploaded file: " + fileName)
+					}
+
+					/*if err != nil {
+						strErr := fmt.Sprintf("%v\n", err)
+						common.LogTxtHandler().Error(result + " - " + strErr)
+					}*/
+				}
+
+				// Search and upload -ctk disk files ----------------------------------->
+				// Search and upload non-numbered virtual disk file
 				if fileSuffix != "" {
-					fileName = imageName + "-" + fileSuffix + "_" + strI + "-ctk.vmdk"
+					fileName = imageName + "-" + fileSuffix + "-ctk.vmdk"
 					common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
 				} else {
-					fileName = imageName + "_" + strI + "-ctk.vmdk"
+					fileName = imageName + "-ctk.vmdk"
 					common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
 				}
-
 				result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
+				common.LogTxtHandler().Info(result)
 
-				if err != nil {
+				if result == "Failed" && err == nil { 
+					common.LogTxtHandler().Debug("File: " + fileName + " not found.")
+				} else if result == "Failed" && err != nil {
+					strErr := fmt.Sprintf("%v", err)
+					common.LogTxtHandler().Error("Error uploading file: " + fileName + " - " + strErr)
+					failedFiles = append(failedFiles, fileName)
+				} else {
+					common.LogTxtHandler().Info("Successfully uploaded file: " + fileName)
+				}
+
+				/*if err != nil {
 					strErr := fmt.Sprintf("%v\n", err)
 					common.LogTxtHandler().Error(result + " - " + strErr)
+				}*/
+
+				// Search and upload numbered -ctk disk files
+				for i := 1; i < 15; i++ {
+					common.LogTxtHandler().Debug("Starting search for numbered CTK disk files. Up to 15 possible disks will be checked for.")
+					strI := strconv.Itoa(i)
+					if fileSuffix != "" {
+						fileName = imageName + "-" + fileSuffix + "_" + strI + "-ctk.vmdk"
+						common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+					} else {
+						fileName = imageName + "_" + strI + "-ctk.vmdk"
+						common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+					}
+
+					result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
+					common.LogTxtHandler().Info(result)
+
+					if result == "Failed" && err == nil { 
+						common.LogTxtHandler().Debug("File: " + fileName + " not found.")
+					} else if result == "Failed" && err != nil {
+						strErr := fmt.Sprintf("%v", err)
+						common.LogTxtHandler().Error("Error uploading file: " + fileName + " - " + strErr)
+						failedFiles = append(failedFiles, fileName)
+						break
+					} else {
+						common.LogTxtHandler().Info("Successfully uploaded file: " + fileName)
+					}
+
+					/*if err != nil {
+						strErr := fmt.Sprintf("%v\n", err)
+						common.LogTxtHandler().Error(result + " - " + strErr)
+					}*/
 				}
+				
+				// Search and upload -flat disk files ----------------------------------->
+				// Search and upload non-numbered virtual disk file
+				if fileSuffix != "" {
+					fileName = imageName + "-" + fileSuffix + "-flat.vmdk"
+					common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+				} else {
+					fileName = imageName + "-flat.vmdk"
+					common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+				}
+				result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
+				common.LogTxtHandler().Info(result)
+
+				/*if err != nil {
+					strErr := fmt.Sprintf("%v\n", err)
+					common.LogTxtHandler().Error(result + " - " + strErr)
+				}*/
+
+				if result == "Failed" && err == nil { 
+					common.LogTxtHandler().Debug("File: " + fileName + " not found.")
+				} else if result == "Failed" && err != nil {
+					strErr := fmt.Sprintf("%v", err)
+					common.LogTxtHandler().Error("Error uploading file: " + fileName + " - " + strErr)
+					failedFiles = append(failedFiles, fileName)
+				} else {
+					common.LogTxtHandler().Info("Successfully uploaded file: " + fileName)
+				}
+
+				// Search and upload numbered -flat disk files
+				for i := 1; i < 15; i++ {
+					common.LogTxtHandler().Debug("Starting search for numbered FLAT disk files. Up to 15 possible disks will be checked for.")
+					strI := strconv.Itoa(i)
+					if fileSuffix != "" {
+						fileName = imageName + "-" + fileSuffix + "_" + strI + "-flat.vmdk"
+						common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+					} else {
+						fileName = imageName + "_" + strI + "-flat.vmdk"
+						common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+					}
+
+					result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
+					common.LogTxtHandler().Info(result)
+
+					/*if err != nil {
+						strErr := fmt.Sprintf("%v\n", err)
+						common.LogTxtHandler().Error(result + " - " + strErr)
+					}*/
+
+					if result == "Failed" && err == nil { 
+						common.LogTxtHandler().Debug("File: " + fileName + " not found.")
+					} else if result == "Failed" && err != nil {
+						strErr := fmt.Sprintf("%v", err)
+						common.LogTxtHandler().Error("Error uploading file: " + fileName + " - " + strErr)
+						failedFiles = append(failedFiles, fileName)
+						break
+					} else {
+						common.LogTxtHandler().Info("Successfully uploaded file: " + fileName)
+					}
+				}
+				
+				//------- Just covering our bases on other possible disk files that may be present ---------
+				// Search [image]-00000#.vmdk files
+				for i := 1; i < 15; i++ {
+					common.LogTxtHandler().Debug("Starting search for -00000# disk files. Up to 15 possible disks will be checked for.")
+					strI := strconv.Itoa(i)
+					if fileSuffix != "" {
+						if i >= 1 && i < 10 {
+							fileName = imageName + "-" + fileSuffix + "-00000" + strI + ".vmdk"
+						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+						} else {
+							fileName = imageName + "-" + fileSuffix + "-0000" + strI + ".vmdk"
+						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+						}
+					} else {
+						if i >= 1 && i < 10 {
+							fileName = imageName + "-00000" + strI + ".vmdk"
+						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+						} else {
+							fileName = imageName + "-0000" + strI + ".vmdk"
+						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+						}
+					}
+
+					result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
+					common.LogTxtHandler().Info(result)
+
+					if result == "Failed" && err == nil { 
+						common.LogTxtHandler().Debug("File: " + fileName + " not found.")
+					} else if result == "Failed" && err != nil {
+						strErr := fmt.Sprintf("%v", err)
+						common.LogTxtHandler().Error("Error uploading file: " + fileName + " - " + strErr)
+						failedFiles = append(failedFiles, fileName)
+						break
+					} else {
+						common.LogTxtHandler().Info("Successfully uploaded file: " + fileName)
+					}
+				}
+
+				// Search [image]-00000#-ctk.vmdk files
+				for i := 1; i < 15; i++ {
+					common.LogTxtHandler().Debug("Starting search for -00000#-ctk disk files. Up to 15 possible disks will be checked.")
+					strI := strconv.Itoa(i)
+					if fileSuffix != "" {
+						if i >= 1 && i < 10 {
+							fileName = imageName + "-" + fileSuffix + "-00000" + strI + "-ctk.vmdk"
+						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+						} else {
+							fileName = imageName + "-" + fileSuffix + "-0000" + strI + "-ctk.vmdk"
+						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+						}
+					} else {
+						if i >= 1 && i < 10 {
+							fileName = imageName + "-00000" + strI + "-ctk.vmdk"
+						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+						} else {
+							fileName = imageName + "-0000" + strI + "-ctk.vmdk"
+						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+						}
+					}
+
+					result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
+					common.LogTxtHandler().Info(result)
+
+					if result == "Failed" && err == nil { 
+						common.LogTxtHandler().Debug("File: " + fileName + " not found.")
+					} else if result == "Failed" && err != nil {
+						strErr := fmt.Sprintf("%v", err)
+						common.LogTxtHandler().Error("Error uploading file: " + fileName + " - " + strErr)
+						failedFiles = append(failedFiles, fileName)
+						break
+					} else {
+						common.LogTxtHandler().Info("Successfully uploaded file: " + fileName)
+					}
+				}
+
+				// Search [image]-00000#-delta.vmdk files // should only exist if there's a snapshot, including just in case
+				for i := 1; i < 15; i++ {
+					common.LogTxtHandler().Debug("Starting search for -00000#-delta disk files. Up to 15 possible disks will be checked for.")
+					strI := strconv.Itoa(i)
+					if fileSuffix != "" {
+						if i >= 1 && i < 10 {
+							fileName = imageName + "-" + fileSuffix + "-00000" + strI + "-delta.vmdk"
+						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+						} else {
+							fileName = imageName + "-" + fileSuffix + "-0000" + strI + "-delta.vmdk"
+						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+						}
+					} else {
+						if i >= 1 && i < 10 {
+							fileName = imageName + "-00000" + strI + "-delta.vmdk"
+						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+						} else {
+							fileName = imageName + "-0000" + strI + "-delta.vmdk"
+						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+						}
+					}
+
+					result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
+					common.LogTxtHandler().Info(result)
+
+					if result == "Failed" && err == nil { 
+						common.LogTxtHandler().Debug("File: " + fileName + " not found.")
+					} else if result == "Failed" && err != nil {
+						strErr := fmt.Sprintf("%v", err)
+						common.LogTxtHandler().Error("Error uploading file: " + fileName + " - " + strErr)
+						failedFiles = append(failedFiles, fileName)
+						break
+					} else {
+						common.LogTxtHandler().Info("Successfully uploaded file: " + fileName)
+					}
+				}
+
+				// Search [image]-00000#-flat.vmdk files
+				for i := 1; i < 15; i++ {
+					common.LogTxtHandler().Debug("Starting search for -00000#-flat disk files. Up to 15 possible disks will be checked for.")
+					strI := strconv.Itoa(i)
+					if fileSuffix != "" {
+						if i >= 1 && i < 10 {
+							fileName = imageName + "-" + fileSuffix + "-00000" + strI + "-flat.vmdk"
+						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+						} else {
+							fileName = imageName + "-" + fileSuffix + "-0000" + strI + "-flat.vmdk"
+						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+						}
+					} else {
+						if i >= 1 && i < 10 {
+							fileName = imageName + "-00000" + strI + "-flat.vmdk"
+						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+						} else {
+							fileName = imageName + "-0000" + strI + "-flat.vmdk"
+						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+						}
+					}
+
+					result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
+					common.LogTxtHandler().Info(result)
+
+					if result == "Failed" && err == nil { 
+						common.LogTxtHandler().Debug("File: " + fileName + " not found.")
+					} else if result == "Failed" && err != nil {
+						strErr := fmt.Sprintf("%v", err)
+						common.LogTxtHandler().Error("Error uploading file: " + fileName + " - " + strErr)
+						failedFiles = append(failedFiles, fileName)
+						break
+					} else {
+						common.LogTxtHandler().Info("Successfully uploaded file: " + fileName)
+					}
+				}
+
+				if len(failedFiles) > 0 {
+					return "Errors uploading one or more image files."
+				} else if len(notFoundFiles) > 0 {
+					return "One or more image files not found."
+				} else {
+					return "End of upload process"
+				}
+			} else {
+				return "Unable to find and/or upload one or more files."
 			}
 			
-			// Search and upload -flat disk files ----------------------------------->
-			// Search and upload non-numbered virtual disk file
-			if fileSuffix != "" {
-				fileName = imageName + "-" + fileSuffix + "-flat.vmdk"
-				common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-			} else {
-				fileName = imageName + "-flat.vmdk"
-				common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-			}
-			result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
-
-			if err != nil {
-				strErr := fmt.Sprintf("%v\n", err)
-				common.LogTxtHandler().Error(result + " - " + strErr)
-			}
-
-			// Search and upload numbered -flat disk files
-			for i := 1; i < 15; i++ {
-				common.LogTxtHandler().Debug("Starting search for numbered FLAT disk files. Up to 15 possible disks will be checked for.")
-				strI := strconv.Itoa(i)
-				if fileSuffix != "" {
-					fileName = imageName + "-" + fileSuffix + "_" + strI + "-flat.vmdk"
-					common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-				} else {
-					fileName = imageName + "_" + strI + "-flat.vmdk"
-					common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-				}
-
-				result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
-
-				if err != nil {
-					strErr := fmt.Sprintf("%v\n", err)
-					common.LogTxtHandler().Error(result + " - " + strErr)
-				}
-			}
-			return "End of upload process"
 		} else {
 			common.LogTxtHandler().Error("Unsupported or blank image type. Supported image types are OVA, OVF, and VMTX.")
 			if imageType != "" {
