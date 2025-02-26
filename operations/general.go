@@ -314,7 +314,7 @@ func UploadFile(sourcePath, targetPath string) (string, error) {
 	bearer := common.SetBearer(util.Token)
 	trimmedBase := util.ServerApi[:len(util.ServerApi)-4]               // Removing '/api' from base URI
 
-	common.LogTxtHandler().Info(">>> Uploading File From: " + sourcePath + "...")
+	common.LogTxtHandler().Info(">>> Checking for file: " + sourcePath + "...")
 
 	if len(sourcePath) != 0 && targetPath != "" { 
 		// We need to ensure the provided source path/file are valid and exist
@@ -369,11 +369,10 @@ func UploadFile(sourcePath, targetPath string) (string, error) {
 				}
 			}
 
-			// If we couldn't find a matching file at all, then we throw an error
+			// If we couldn't find a matching file at all, we only send a warning as this may be expected for certain disk checks
 			if found == false {
-				err := errors.New("Unable to validate existance of source file. Source file doesn't exist.")
-				common.LogTxtHandler().Error("Unable to validate existance of source file. Source file doesn't exist.")
-				return "", err
+				common.LogTxtHandler().Warn("File doesn't exist.")
+				return "", nil
 			}
 			
 			newArtifactPath := trimmedBase + targetPath + fileName                  // Forms: http://artifactory_base_api_url/repo-key/folder/artifact.txt
@@ -537,7 +536,7 @@ func GetArtifact(downloadUri string) (string, error) {
 	return statusCode, nil
 }
 
-func CheckFileAndUpload(items []os.DirEntry, sourceDir, targetDir, fileName, imageName string) (string, error) {
+func CheckFileAndUpload_OLD(items []os.DirEntry, sourceDir, targetDir, fileName, imageName string) (string, error) {
 	// sourceDir ex: c:\\lab\\ or /lab/ - assumes ending slash
 	// targetDir ex: /repo-name/folder/ - assumes ending slash
 	var sourcePath, targetPath, downloadUri string
@@ -577,6 +576,44 @@ func CheckFileAndUpload(items []os.DirEntry, sourceDir, targetDir, fileName, ima
 		} else {
 			common.LogTxtHandler().Debug("Checking next file...")
 		}
+	}
+
+	if downloadUri != "" {
+		return "Success", nil
+	} else if downloadUri == "" && err == nil {
+		return "Failed", nil
+	} else {
+		return "Failed", err
+	}
+}
+
+func CheckFileAndUpload(sourceDir, targetDir, fileName, imageName string) (string, error) {
+	// sourceDir ex: c:\\lab\\ or /lab/ - assumes ending slash
+	// targetDir ex: /repo-name/folder/ - assumes ending slash
+	var sourcePath, targetPath, downloadUri string
+	
+	sourcePath = sourceDir + fileName
+
+	if imageName != "" {
+		targetPath = targetDir + imageName + "/"
+	} else {
+		targetPath = common.CheckAddSlashToPath(targetDir)
+	}
+
+	common.LogTxtHandler().Debug("Source Path: " + sourcePath)
+	common.LogTxtHandler().Debug("Target Path: " + targetPath)
+
+	// 'UploadFile' validates file before upload
+	downloadUri, err = UploadFile(sourcePath, targetPath)
+
+	if err != nil {
+		strErr := fmt.Sprintf("%v\n", err)
+		common.LogTxtHandler().Error("Error uploading: " + fileName + " to: " + targetPath + " - " + strErr)
+	} else if downloadUri != "" {
+		common.LogTxtHandler().Info("File: " + fileName + " uploaded.")
+		common.LogTxtHandler().Info("Download URI: " + downloadUri)
+	} else {
+		common.LogTxtHandler().Debug("Checking next file...")
 	}
 
 	if downloadUri != "" {
