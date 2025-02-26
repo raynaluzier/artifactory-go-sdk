@@ -247,7 +247,7 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 				strErr := fmt.Sprintf("%v", err)
 				return "Error uploading file: " + fileName + " - " + strErr
 			} else {
-				return "Successfully uploaded: " + fileName
+				return "End of upload process"
 			}
 
 		} else if imageType == "ovf" {
