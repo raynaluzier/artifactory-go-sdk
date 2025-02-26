@@ -307,8 +307,6 @@ func RetrieveArtifact(downloadUri string) (string, error) {
 }
 
 func UploadFile(sourcePath, targetPath string) (string, error) {
-	//** TO DO: Option to get previous 'version' and increment
-
 	var downloadUri string
 	var filePath string
 	var fileName string
