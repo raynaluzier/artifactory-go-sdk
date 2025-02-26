@@ -306,7 +306,7 @@ func RetrieveArtifact(downloadUri string) (string, error) {
 	return "Completed file download", nil
 }
 
-func UploadFile(sourcePath, targetPath, fileSuffix string) (string, error) {
+func UploadFile(sourcePath, targetPath string) (string, error) {
 	//** TO DO: Option to get previous 'version' and increment
 
 	var downloadUri string
@@ -314,7 +314,6 @@ func UploadFile(sourcePath, targetPath, fileSuffix string) (string, error) {
 	var fileName string
 	var found bool
 	bearer := common.SetBearer(util.Token)
-	separater := "-"										  // If adding a file suffix (like date, version, etc), use this separater between filename and suffix
 	trimmedBase := util.ServerApi[:len(util.ServerApi)-4]               // Removing '/api' from base URI
 
 	common.LogTxtHandler().Info(">>> Uploading File From: " + sourcePath + "...")
@@ -378,15 +377,6 @@ func UploadFile(sourcePath, targetPath, fileSuffix string) (string, error) {
 				common.LogTxtHandler().Error("Unable to validate existance of source file. Source file doesn't exist.")
 				return "", err
 			}
-			
-			// We now have a validated source path and filename
-			// Set target filename = filename + fileSuffix (if not blank)
-			if len(fileSuffix) != 0 || fileSuffix != "" {							// If a file suffix (like version, date, etc) was provided...
-				fileExt := path.Ext(fileName)										// Returns .[ext]
-				fmt.Println(fileName)
-				justName := strings.TrimSuffix(fileName, fileExt)							// Trim off extension
-				fileName = justName + separater + fileSuffix + fileExt
-			}   // If blank, then the original filename will be used
 			
 			newArtifactPath := trimmedBase + targetPath + fileName                  // Forms: http://artifactory_base_api_url/repo-key/folder/artifact.txt
 			data := strings.NewReader("@/" + sourcePath)                            // Formats the payload appropriately
@@ -571,12 +561,11 @@ func CheckFileAndUpload(items []os.DirEntry, sourceDir, targetDir, fileName, ima
 			} else {
 				targetPath = common.CheckAddSlashToPath(targetDir)
 			}
-			suff := ""
 
 			common.LogTxtHandler().Debug("Source Path: " + sourcePath)
 			common.LogTxtHandler().Debug("Target Path: " + targetPath)
 
-			downloadUri, err = UploadFile(sourcePath, targetPath, suff)
+			downloadUri, err = UploadFile(sourcePath, targetPath)
 
 			if err != nil {
 				strErr := fmt.Sprintf("%v\n", err)

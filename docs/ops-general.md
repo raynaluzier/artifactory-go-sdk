@@ -86,15 +86,12 @@ Uploads artifact to specified target path.
 /lab/artifact.txt. 
 `targetPath` should be in the format of '/repo-key/folder/path/'
 The target filename will match the source file as it exists in the source directory.
-`fileSuffix` is an optional placeholder for potential distinguishing values such as versions, etc. where a common artifact identifier (such as 'win2022') is used for every build and some other distinguishing value should be appended for uniquiness with "-" as the separator ('win2022-1.1.1.iso'). If an empty string ("") is passed, then this will be ignored.
 
 #### Inputs
 | Name          | Description                                                             | Type    | Required |
 |---------------|-------------------------------------------------------------------------|---------|:--------:|
 | sourcePath    | Full file path where will be sourced from; **Needs proper escape chars  | string  | TRUE     |
 | targetPath    | Target repo and folder destination of the artifact                      | string  | TRUE     |
-| fileSuffix    | Placeholder for distinguishing values like dates, versions, etc         | string  | *FALSE   |
-                *If not using a file suffix, an empty string ("") should be passed
 
 #### Outputs
 | Name    | Description                                                       | Type     |

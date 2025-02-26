@@ -30,7 +30,7 @@ If the resulting list of artifacts still contains more than one artifact, then t
 
 
 ## SetupTest
-As part of the Artifactory plugin acceptance test, this function takes in the Artifactory server's API address, Artifactory Identity token, the full path to the test artifact that gets created (which is created from the plugin - ex: test-artifact.txt in the HOME directory of the user running the acceptance test), artifact suffix (optional, such as '1.0.0' or a date string, etc), and key/value pair of test properties (ex: release=latest-stable). The gloabl variables `util.ServerApi` and `util.Token` are set by the function's inputs so these values can be used by the subsequent function calls without having to pass them in every time.
+As part of the Artifactory plugin acceptance test, this function takes in the Artifactory server's API address, Artifactory Identity token, the full path to the test artifact that gets created (which is created from the plugin - ex: test-artifact.txt in the HOME directory of the user running the acceptance test), and key/value pair of test properties (ex: release=latest-stable). The gloabl variables `util.ServerApi` and `util.Token` are set by the function's inputs so these values can be used by the subsequent function calls without having to pass them in every time.
 
 In addition, the function takes in a boolean value for whether or not to upload the test artifact, which allows for more flexibility when setting up the test environment, depending on the acceptance test. For example, the data source test requires the test artifact to be uploaded as part of the setup prep, while the post-processor for artifact uploads only needs the test repo to exist first.
 
@@ -44,7 +44,6 @@ From there, the artifact URI is derived from the download URI and the key/value 
 | serverApi        | URL to the target Artifactory server; format: `server.com:8081/artifactory/api`                           | string   | TRUE     |
 | token            | Identity Token for the Artifactory account executing the function calls                                   | string   | TRUE     |
 | testArtifactPath | Path to the test artifact created at start of acceptance testing; $HOME/test-directory/test-artifact.txt  | string   | TRUE     |
-| artifactSuffix   | Full or partial name of the artifact to search for                                                        | string   | FALSE    |
 | kvProps          | One or more property keys and values to filter by                                                         | []string | TRUE     |
 | uploadArtifact   | true/false; whether or not to upload the test artifact as part of the test environment setup              | bool     | TRUE     |
 
@@ -124,7 +123,7 @@ Once the variables are set, the desired file is verified that it exists in the A
 
 
 ## UploadArtifacts
-Takes in the Artifactory server's API address, Artifactory Identity token, image type (OVA, OVF, or VMTX), image name, source path of the new artifact (ex: c:\\lab or /lab), target path within Artifactory where the new artifact should be uploaded to (ex: /repo/opt-folder/), and optionally a file suffix if using the same artifact base name and needing to make it unique (ex: version, date, etc separated by '-'). 
+Takes in the Artifactory server's API address, Artifactory Identity token, image type (OVA, OVF, or VMTX), image name, source path of the new artifact (ex: c:\\lab or /lab), and target path within Artifactory where the new artifact should be uploaded to (ex: /repo/opt-folder/). 
 
 The Global Variables `util.ServerApi` and `util.Token` are set by the function's inputs so these values can be used by the subsequent function calls without having to pass them in every time.
 
@@ -141,7 +140,6 @@ The files are validated against the source directory and if they exist, they are
 | imageName   | Base name of the image (ex: win2022)                                                                             | string   | TRUE     |
 | sourceDir   | Directory path (without any filename) where the image will be sourced from; **Needs proper escape chars          | string   | TRUE     |
 | targetDir   | Target repo/path of destination for image (files will automatically be placed in their own image-based folder)   | string   | TRUE     |
-| fileSuffix  | Placeholder for distinguishing values like dates, versions, etc                                                  | string   | FALSE    |
 
 #### Outputs
 | Name      | Description                               | Type     |

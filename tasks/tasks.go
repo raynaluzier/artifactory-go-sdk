@@ -94,7 +94,7 @@ func GetImageDetails(serverApi, token, artifName, ext string, kvProps []string) 
 }
 
 // Must have Artifactory instance licensed at Pro or higher, access to create/remove repos and artifacts
-func SetupTest(serverApi, token, testArtifactPath, artifactSuffix string, kvProps []string, uploadArtifact bool) (string, error) {
+func SetupTest(serverApi, token, testArtifactPath string, kvProps []string, uploadArtifact bool) (string, error) {
 	// testArtifactPath is the full path to the artifact -> ex - c:\lab\test-artifact.txt
 	// testRepoPath is the target path to put the artifact in -> /test-packer-plugin
 
@@ -112,7 +112,7 @@ func SetupTest(serverApi, token, testArtifactPath, artifactSuffix string, kvProp
 	if uploadArtifact == true {
 		// Upload test artifact to test repo
 		// Checks for ending slash on target repo path as part of this
-		downloadUri, err := operations.UploadFile(testArtifactPath, testRepoPath, artifactSuffix)
+		downloadUri, err := operations.UploadFile(testArtifactPath, testRepoPath)
 		if err != nil {
 			strErr := fmt.Sprintf("%v\n", err)
 			common.LogTxtHandler().Error("Unable to get download URI: " + strErr)
@@ -209,7 +209,7 @@ func DownloadGeneralArtifact(serverApi, token, outputDir, artifPath, fileName, t
 	}
 }
 
-func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDir, fileSuffix string) (string) {
+func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDir string) (string) {
 	// Image files will placed in a folder named after the image, so no need to define a folder specifically for the image
 	// targetDir --> /repo/ --> files will be in path: /repo/image1234/image1234.ova, for example
 
@@ -229,13 +229,8 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 		items, _ := os.ReadDir(sourceDir)
 
 		if imageType == "ova" {
-			if fileSuffix != "" {
-				fileName = imageName + "-" + fileSuffix + ".ova"
-				common.LogTxtHandler().Info("Searching for File Name: " + fileName)
-			} else {
-				fileName = imageName + ".ova"
-				common.LogTxtHandler().Info("Searching for File Name: " + fileName)
-			}
+			fileName = imageName + ".ova"
+			common.LogTxtHandler().Info("Searching for File Name: " + fileName)
 
 			result, err := operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
 			common.LogTxtHandler().Info(result)
@@ -253,13 +248,8 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 		} else if imageType == "ovf" {
 			fileTypes = []string{".ovf", ".mf"}
 			for _, ft := range fileTypes {
-				if fileSuffix != "" {
-					fileName = imageName + "-" + fileSuffix + ft
-					common.LogTxtHandler().Info("Searching for File Name: " + fileName)
-				} else {
-					fileName = imageName + ft
-					common.LogTxtHandler().Info("Searching for File Name: " + fileName)
-				}
+				fileName = imageName + ft
+				common.LogTxtHandler().Info("Searching for File Name: " + fileName)
 
 				result, err := operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
 				common.LogTxtHandler().Info(result)
@@ -285,13 +275,8 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 				for i := 1; i < 15; i++ {
 					common.LogTxtHandler().Debug("Starting search for disk files. Up to 15 possible disks will be checked for.")
 					strI := strconv.Itoa(i)
-					if fileSuffix != "" {
-						fileName = imageName + "-" + fileSuffix + "-disk" + strI + ".vmdk"   // changing -disk-# to -disk#
-						common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-					} else {
-						fileName = imageName + "-disk" + strI + ".vmdk"					  // changing -disk-# to -disk#
-						common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-					}
+					fileName = imageName + "-disk" + strI + ".vmdk"					  // changing -disk-# to -disk#
+					common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
 
 					result, err := operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
 					common.LogTxtHandler().Info(result)
@@ -326,13 +311,8 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 			var result string
 			fileTypes = []string{".vmtx", ".nvram", ".vmsd", ".vmxf"}
 			for _, ft := range fileTypes {
-				if fileSuffix != "" {
-					fileName = imageName + "-" + fileSuffix + ft
-					common.LogTxtHandler().Info("Searching for File Name: " + fileName)
-				} else {
-					fileName = imageName + ft
-					common.LogTxtHandler().Info("Searching for File Name: " + fileName)
-				}
+				fileName = imageName + ft
+				common.LogTxtHandler().Info("Searching for File Name: " + fileName)
 
 				result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
 				common.LogTxtHandler().Info(result)
@@ -359,13 +339,9 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 			if len(notFoundFiles) == 0 && len(failedFiles) == 0 {
 				// Search and upload non-numbered virtual disk file
 				common.LogTxtHandler().Debug("Starting search for disk files...")
-				if fileSuffix != "" {
-					fileName = imageName + "-" + fileSuffix + ".vmdk"
-					common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-				} else {
-					fileName = imageName + ".vmdk"
-					common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-				}
+				fileName = imageName + ".vmdk"
+				common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+
 				result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
 				common.LogTxtHandler().Info(result)
 
@@ -378,13 +354,8 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 				for i := 1; i < 15; i++ {
 					common.LogTxtHandler().Debug("Starting search for numbered disk files. Up to 15 possible disks will be checked for.")
 					strI := strconv.Itoa(i)
-					if fileSuffix != "" {
-						fileName = imageName + "-" + fileSuffix + "_" + strI + ".vmdk"
-						common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-					} else {
-						fileName = imageName + "_" + strI + ".vmdk"
-						common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-					}
+					fileName = imageName + "_" + strI + ".vmdk"
+					common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
 
 					result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
 					common.LogTxtHandler().Info(result)
@@ -403,13 +374,9 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 
 				// Search and upload -ctk disk files ----------------------------------->
 				// Search and upload non-numbered virtual disk file
-				if fileSuffix != "" {
-					fileName = imageName + "-" + fileSuffix + "-ctk.vmdk"
-					common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-				} else {
-					fileName = imageName + "-ctk.vmdk"
-					common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-				}
+				fileName = imageName + "-ctk.vmdk"
+				common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+				
 				result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
 				common.LogTxtHandler().Info(result)
 
@@ -427,13 +394,8 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 				for i := 1; i < 15; i++ {
 					common.LogTxtHandler().Debug("Starting search for numbered CTK disk files. Up to 15 possible disks will be checked for.")
 					strI := strconv.Itoa(i)
-					if fileSuffix != "" {
-						fileName = imageName + "-" + fileSuffix + "_" + strI + "-ctk.vmdk"
-						common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-					} else {
-						fileName = imageName + "_" + strI + "-ctk.vmdk"
-						common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-					}
+					fileName = imageName + "_" + strI + "-ctk.vmdk"
+					common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
 
 					result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
 					common.LogTxtHandler().Info(result)
@@ -452,13 +414,9 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 				
 				// Search and upload -flat disk files ----------------------------------->
 				// Search and upload non-numbered virtual disk file
-				if fileSuffix != "" {
-					fileName = imageName + "-" + fileSuffix + "-flat.vmdk"
-					common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-				} else {
-					fileName = imageName + "-flat.vmdk"
-					common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-				}
+				fileName = imageName + "-flat.vmdk"
+				common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
+				
 				result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
 				common.LogTxtHandler().Info(result)
 
@@ -476,13 +434,8 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 				for i := 1; i < 15; i++ {
 					common.LogTxtHandler().Debug("Starting search for numbered FLAT disk files. Up to 15 possible disks will be checked for.")
 					strI := strconv.Itoa(i)
-					if fileSuffix != "" {
-						fileName = imageName + "-" + fileSuffix + "_" + strI + "-flat.vmdk"
-						common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-					} else {
-						fileName = imageName + "_" + strI + "-flat.vmdk"
-						common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-					}
+					fileName = imageName + "_" + strI + "-flat.vmdk"
+					common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
 
 					result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
 					common.LogTxtHandler().Info(result)
@@ -504,22 +457,12 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 				for i := 1; i < 15; i++ {
 					common.LogTxtHandler().Debug("Starting search for -00000# disk files. Up to 15 possible disks will be checked for.")
 					strI := strconv.Itoa(i)
-					if fileSuffix != "" {
-						if i >= 1 && i < 10 {
-							fileName = imageName + "-" + fileSuffix + "-00000" + strI + ".vmdk"
-						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-						} else {
-							fileName = imageName + "-" + fileSuffix + "-0000" + strI + ".vmdk"
-						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-						}
+					if i >= 1 && i < 10 {
+						fileName = imageName + "-00000" + strI + ".vmdk"
+						common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
 					} else {
-						if i >= 1 && i < 10 {
-							fileName = imageName + "-00000" + strI + ".vmdk"
-						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-						} else {
-							fileName = imageName + "-0000" + strI + ".vmdk"
-						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-						}
+						fileName = imageName + "-0000" + strI + ".vmdk"
+						common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
 					}
 
 					result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
@@ -541,22 +484,12 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 				for i := 1; i < 15; i++ {
 					common.LogTxtHandler().Debug("Starting search for -00000#-ctk disk files. Up to 15 possible disks will be checked.")
 					strI := strconv.Itoa(i)
-					if fileSuffix != "" {
-						if i >= 1 && i < 10 {
-							fileName = imageName + "-" + fileSuffix + "-00000" + strI + "-ctk.vmdk"
-						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-						} else {
-							fileName = imageName + "-" + fileSuffix + "-0000" + strI + "-ctk.vmdk"
-						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-						}
+					if i >= 1 && i < 10 {
+						fileName = imageName + "-00000" + strI + "-ctk.vmdk"
+						common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
 					} else {
-						if i >= 1 && i < 10 {
-							fileName = imageName + "-00000" + strI + "-ctk.vmdk"
-						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-						} else {
-							fileName = imageName + "-0000" + strI + "-ctk.vmdk"
-						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-						}
+						fileName = imageName + "-0000" + strI + "-ctk.vmdk"
+						common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
 					}
 
 					result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
@@ -578,22 +511,12 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 				for i := 1; i < 15; i++ {
 					common.LogTxtHandler().Debug("Starting search for -00000#-delta disk files. Up to 15 possible disks will be checked for.")
 					strI := strconv.Itoa(i)
-					if fileSuffix != "" {
-						if i >= 1 && i < 10 {
-							fileName = imageName + "-" + fileSuffix + "-00000" + strI + "-delta.vmdk"
-						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-						} else {
-							fileName = imageName + "-" + fileSuffix + "-0000" + strI + "-delta.vmdk"
-						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-						}
+					if i >= 1 && i < 10 {
+						fileName = imageName + "-00000" + strI + "-delta.vmdk"
+						common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
 					} else {
-						if i >= 1 && i < 10 {
-							fileName = imageName + "-00000" + strI + "-delta.vmdk"
-						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-						} else {
-							fileName = imageName + "-0000" + strI + "-delta.vmdk"
-						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-						}
+						fileName = imageName + "-0000" + strI + "-delta.vmdk"
+						common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
 					}
 
 					result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)
@@ -615,22 +538,12 @@ func UploadArtifacts(serverApi, token, imageType, imageName, sourceDir, targetDi
 				for i := 1; i < 15; i++ {
 					common.LogTxtHandler().Debug("Starting search for -00000#-flat disk files. Up to 15 possible disks will be checked for.")
 					strI := strconv.Itoa(i)
-					if fileSuffix != "" {
-						if i >= 1 && i < 10 {
-							fileName = imageName + "-" + fileSuffix + "-00000" + strI + "-flat.vmdk"
-						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-						} else {
-							fileName = imageName + "-" + fileSuffix + "-0000" + strI + "-flat.vmdk"
-						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-						}
+					if i >= 1 && i < 10 {
+						fileName = imageName + "-00000" + strI + "-flat.vmdk"
+						common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
 					} else {
-						if i >= 1 && i < 10 {
-							fileName = imageName + "-00000" + strI + "-flat.vmdk"
-						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-						} else {
-							fileName = imageName + "-0000" + strI + "-flat.vmdk"
-						    common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
-						}
+						fileName = imageName + "-0000" + strI + "-flat.vmdk"
+						common.LogTxtHandler().Debug("Searching for File Name: " + fileName)
 					}
 
 					result, err = operations.CheckFileAndUpload(items, newSourceDir, newTargetDir, fileName, imageName)

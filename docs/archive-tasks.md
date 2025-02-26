@@ -2,7 +2,7 @@
 The following functions are currently not used but archived in case a need for them arises.
 
 ## UploadArtifact
-Takes in the Artifactory server's API address, Artifactory Identity token, source path of the new artifact, target path within Artifactory where the new artifact should be uploaded to, and optionally a file suffix if using the same artifact base name and needing to make it unique (ex: version, date, etc separated by '-'). The Global Variables `util.ServerApi` and `util.Token` are set by the function's inputs so these values can be used by the subsequent function calls without having to pass them in every time.
+Takes in the Artifactory server's API address, Artifactory Identity token, source path of the new artifact, and target path within Artifactory where the new artifact should be uploaded to. The Global Variables `util.ServerApi` and `util.Token` are set by the function's inputs so these values can be used by the subsequent function calls without having to pass them in every time.
 
 Once the variables are set, the file is uploaded from the provided source path (`c:\\lab\\artifact.ext` or `/lab/artifact.ext` to the target path (`/repo/folder/path`). If successful, the download URI of the returned from this operation. Next, the artifact URI is derived from the download URI. Both the download URI and artifact URI are returned
 
@@ -13,7 +13,6 @@ Once the variables are set, the file is uploaded from the provided source path (
 | token       | Identity Token for the Artifactory account executing the function calls         | string   | TRUE     |
 | sourcePath  | Full file path where will be sourced from; **Needs proper escape chars          | string   | TRUE     |
 | targetPath  | Target repo and folder destination of the artifact                              | string   | TRUE     |
-| fileSuffix  | Placeholder for distinguishing values like dates, versions, etc                 | string   | FALSE    |
 
 #### Outputs
 | Name         | Description                                                                   | Type     |
