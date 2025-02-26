@@ -71,7 +71,7 @@ As part of the Artifactory plugin acceptance test, this function takes in the Ar
 
 
 ## UploadGeneralArtifact
-Takes in the Artifactory server's API address, Artifactory Identity token, source path of the artifact, target path within Artifactory where the artifact should be uploaded to, file name of the artifact, and a folder name where the artifact should be placed. Folder name may be the same as the image name if placing the artifact with associated image files, or it could be a separate folder for flexibility. Otherwise, leave `folderName` blank and the file will be place directly in the `artifPath`.
+Takes in the Artifactory server's API address, Artifactory Identity token, source path of the artifact, target path within Artifactory where the artifact should be uploaded to, and file name of the artifact.
 
 The Global Variables `util.ServerApi` and `util.Token` are set by the function's inputs so these values can be used by the subsequent function calls without having to pass them in every time.
 
@@ -87,7 +87,6 @@ Once the variables are set, the source file is verified that it exists in the di
 | sourcePath  | Directory where file will be sourced from; **Needs proper escape chars          | string   | TRUE     |
 | artifPath   | Target repo and folder destination of the artifact                              | string   | TRUE     |
 | fileName    | Name of the file with extenion being checked and uploaded                       | string   | TRUE     |
-| folderName  | Optional folder name to place the file into                                     | string   | FALSE    |
 
 #### Outputs
 | Name   | Description                                                 | Type     |

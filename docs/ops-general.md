@@ -81,11 +81,7 @@ This function gets the artifact via the provided Download URI and copies it to t
 
 
 ## UploadFile
-Uploads artifact to specified target path. 
-`sourcePath` should be properly escaped and in the format of 'h:\\lab\\artifact.txt' or 
-/lab/artifact.txt. 
-`targetPath` should be in the format of '/repo-key/folder/path/'
-The target filename will match the source file as it exists in the source directory.
+Uploads artifact to specified target path. `sourcePath` should be properly escaped and in the format of 'h:\\lab\\artifact.txt' or /lab/artifact.txt. `targetPath` should be in the format of '/repo-key/folder/path/'. The target filename will match the source file as it exists in the source directory.
 
 #### Inputs
 | Name          | Description                                                             | Type    | Required |
