@@ -560,13 +560,14 @@ func CheckFileAndUpload(items []os.DirEntry, sourceDir, targetDir, fileName, ima
 		// So we'll convert them both to lowercase first...
 		itemNameLower := strings.ToLower(item.Name())
 		fileNameLower := strings.ToLower(fileName)
+		imageNameLower := strings.ToLower(imageName)  // as the filename will be lowercase, making folder name match case otherwise will be in a separate folder if existing image folder already exists in lowercase
 
 		if itemNameLower == fileNameLower {  //item.Name() == fileName {
 			common.LogTxtHandler().Debug("File matches...preparing to upload.")
 			sourcePath = sourceDir + fileName
 
 			if imageName != "" {
-				targetPath = targetDir + imageName + "/"
+				targetPath = targetDir + imageNameLower + "/"
 			} else {
 				targetPath = common.CheckAddSlashToPath(targetDir)
 			}
