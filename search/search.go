@@ -13,15 +13,14 @@ import (
 	"github.com/raynaluzier/artifactory-go-sdk/util"
 )
 
-var request *http.Request
-var err error
-
 func GetArtifactsByProps(listKvProps []string) ([]string, error) {
 	// Takes in list of property key/values strings (ex: 'release=latest-stable', 'testing=passed')
 	var strKvProps string
 	listArtifUris := []string{}
 	bearer := common.SetBearer(util.Token)
 	requestPath := util.ServerApi + "/search/prop?"
+	var request *http.Request
+	var err error
 
 	common.LogTxtHandler().Info(">>> Getting Artifacts by Property Names/Values...")
 
@@ -29,34 +28,38 @@ func GetArtifactsByProps(listKvProps []string) ([]string, error) {
 		if len(listKvProps) > 1 {
 			// If there's more than one prop name/value supplied, adds the required '&' separater between them
 			strKvProps = strings.Join(listKvProps, "&")
-			request, err = http.NewRequest("GET", requestPath + strKvProps, nil)
+			request, err = http.NewRequest("GET", requestPath+strKvProps, nil)
 			common.LogTxtHandler().Debug("REQUEST: Sending 'GET' request to: " + requestPath + strKvProps)
 
 		} else {
-			request, err = http.NewRequest("GET", requestPath + listKvProps[0], nil)
+			request, err = http.NewRequest("GET", requestPath+listKvProps[0], nil)
 			common.LogTxtHandler().Debug("REQUEST: Sending 'GET' request to: " + requestPath + listKvProps[0])
 		}
 
+		if err != nil {
+			return nil, err
+		}
 		request.Header.Add("Authorization", bearer)
-	
+
 		client := &http.Client{}
 		response, err := client.Do(request)
 		if err != nil {
 			strErr := fmt.Sprintf("%v\n", err)
 			common.LogTxtHandler().Error("Error on API response from 'GET' " + requestPath + " - " + strErr)
+			return nil, err
 
 		} else {
 			defer response.Body.Close()
 			body, err := io.ReadAll(response.Body)
 			common.LogTxtHandler().Debug("REQUEST RESPONSE: " + string(body))
-			
+
 			// JSON return is results with an array of one or more URI strings
 			type resultsJson struct {
-				Results []struct{
+				Results []struct {
 					Uri string `json:"uri"`
 				} `json:"results"`
 			}
-		
+
 			// Unmarshal the JSON return
 			var jsonData *resultsJson
 			err = json.Unmarshal(body, &jsonData)
@@ -65,7 +68,7 @@ func GetArtifactsByProps(listKvProps []string) ([]string, error) {
 				common.LogTxtHandler().Error("Could not unmarshal response - " + strErr)
 			}
 
-			// As long as the results are not empty, parse thru the results and append the URI for each 
+			// As long as the results are not empty, parse thru the results and append the URI for each
 			// matching artifact to a list of strings
 			if len(jsonData.Results) != 0 {
 				for idx, r := range jsonData.Results {
@@ -106,7 +109,10 @@ func GetArtifactsByName(artifName string) ([]string, error) {
 
 	if artifName != "" {
 		common.LogTxtHandler().Debug("REQUEST: Sending 'GET' request to: " + requestPath)
-		request, err = http.NewRequest("GET", requestPath, nil)
+		request, err := http.NewRequest("GET", requestPath, nil)
+		if err != nil {
+			return nil, err
+		}
 		request.Header.Add("Authorization", bearer)
 
 		client := &http.Client{}
@@ -115,19 +121,19 @@ func GetArtifactsByName(artifName string) ([]string, error) {
 			strErr := fmt.Sprintf("%v\n", err)
 			common.LogTxtHandler().Error("Error on response. " + strErr)
 			return nil, err
-			
+
 		} else {
 			defer response.Body.Close()
 			body, err := io.ReadAll(response.Body)
 			common.LogTxtHandler().Debug("REQUEST RESPONSE: " + string(body))
-			
+
 			// JSON return is results with an array of one or more URI strings
 			type resultsJson struct {
-				Results []struct{
+				Results []struct {
 					Uri string `json:"uri"`
 				} `json:"results"`
 			}
-			
+
 			// Unmarshal the JSON return
 			var jsonData *resultsJson
 			err = json.Unmarshal(body, &jsonData)
@@ -135,8 +141,8 @@ func GetArtifactsByName(artifName string) ([]string, error) {
 				strErr := fmt.Sprintf("%v\n", err)
 				common.LogTxtHandler().Error("Could not unmarshal response - " + strErr)
 			}
-			
-			// As long as the results are not empty, parse thru the results and append the URI for each 
+
+			// As long as the results are not empty, parse thru the results and append the URI for each
 			// matching artifact to a list of strings
 			if len(jsonData.Results) != 0 {
 				for idx, r := range jsonData.Results {
@@ -175,9 +181,9 @@ func FilterListByFileType(ext string, listArtifacts []string) ([]string, error) 
 	}
 
 	if len(listArtifacts) != 0 {
-		if strings.Contains(ext, ".") {			// If the file extension already contains '.', don't do anything
+		if strings.Contains(ext, ".") { // If the file extension already contains '.', don't do anything
 		} else {
-			ext = "." + ext						// Otherwise, add leading '.'
+			ext = "." + ext // Otherwise, add leading '.'
 		}
 
 		for _, item := range listArtifacts {
@@ -187,9 +193,9 @@ func FilterListByFileType(ext string, listArtifacts []string) ([]string, error) 
 			}
 		}
 	} else {
-		err = errors.New("List of artifacts cannot be empty.")
+		err := errors.New("List of artifacts cannot be empty.")
 		common.LogTxtHandler().Error("List of artifacts cannot be empty.")
 		return nil, err
 	}
-	return filteredList, err
+	return filteredList, nil
 }

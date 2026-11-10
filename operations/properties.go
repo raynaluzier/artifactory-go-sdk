@@ -12,35 +12,38 @@ import (
 	"github.com/raynaluzier/artifactory-go-sdk/util"
 )
 
-var statusCode string
-
 type prop struct {
-	Name string
+	Name  string
 	Value string
 }
 
-func GetArtifactPropVals(artifUri string, listPropKeys []string) (interface{}, error){
+func GetArtifactPropVals(artifUri string, listPropKeys []string) (interface{}, error) {
 	// Returns the values for only the properties included in the URI for the given artifact
 	// Search is CASE SENSTIVE
 	bearer := common.SetBearer(util.Token)
 	var properties []prop
+	var request *http.Request
+	var err error
 
 	common.LogTxtHandler().Info(">>> Getting Values for Specified Artifact Property(ies): " + artifUri)
-	
+
 	if artifUri != "" {
 		if len(listPropKeys) > 1 {
 			// If there's more than one property name supplied, adds the required ',' separater between them
 			strProps := strings.Join(listPropKeys, ",")
-			request, err = http.NewRequest("GET", artifUri + "?properties=" + strProps, nil)
+			request, err = http.NewRequest("GET", artifUri+"?properties="+strProps, nil)
 			common.LogTxtHandler().Debug("REQUEST: Sending 'GET' request to: " + artifUri + "?properties=" + strProps)
 
 		} else if len(listPropKeys) == 1 && listPropKeys[0] != "" {
-			request, err = http.NewRequest("GET", artifUri + "?properties=" + listPropKeys[0], nil)
+			request, err = http.NewRequest("GET", artifUri+"?properties="+listPropKeys[0], nil)
 			common.LogTxtHandler().Debug("REQUEST: Sending 'GET' request to: " + artifUri + "?properties=" + listPropKeys[0])
 
 		} else {
 			err := errors.New("Unable to search for Artifact properties without one or more property names")
 			common.LogTxtHandler().Error("Unable to search for Artifact properties without one or more property names")
+			return nil, err
+		}
+		if err != nil {
 			return nil, err
 		}
 		request.Header.Add("Authorization", bearer)
@@ -114,13 +117,18 @@ func GetArtifactPropVals(artifUri string, listPropKeys []string) (interface{}, e
 
 func GetAllPropsForArtifact(artifUri string) (interface{}, error) {
 	bearer := common.SetBearer(util.Token)
-	var properties [] prop
+	var properties []prop
+	var request *http.Request
+	var err error
 
 	common.LogTxtHandler().Info(">>> Getting All Properties for Artifact: " + artifUri + "...")
 
 	if artifUri != "" {
 		common.LogTxtHandler().Debug("REQUEST: Sending 'GET' request to: " + artifUri)
-		request, err = http.NewRequest("GET", artifUri + "?properties", nil)
+		request, err = http.NewRequest("GET", artifUri+"?properties", nil)
+		if err != nil {
+			return nil, err
+		}
 		request.Header.Add("Authorization", bearer)
 
 		client := &http.Client{}
@@ -166,7 +174,7 @@ func GetAllPropsForArtifact(artifUri string) (interface{}, error) {
 						common.LogTxtHandler().Debug("FOUND PROPERTY: " + k + " with VALUE: " + strValue)
 					}
 					return properties, nil
-					
+
 				} else {
 					err := errors.New("No results returned.")
 					common.LogTxtHandler().Warn("No results returned.")
@@ -187,6 +195,7 @@ func FilterListByProps(listArtifUris, listKvProps []string) (string, error) {
 	var structData []map[string]interface{}
 	numProps := len(listKvProps)
 	var foundItem string
+	var err error
 
 	common.LogTxtHandler().Info(">>> Filtering Artifact URIs by Property Keys/Values...")
 	for p := 0; p < len(listKvProps); p++ {
@@ -196,10 +205,10 @@ func FilterListByProps(listArtifUris, listKvProps []string) (string, error) {
 	if len(listArtifUris) != 0 && len(listKvProps) != 0 {
 		for a := 0; a < len(listArtifUris); a++ {
 			// For each artifact URI in list, get it's properties/values; there can be one or more properties/values assigned
-			artifProps, err := GetAllPropsForArtifact(listArtifUris[a])  // ex return: [{release stable} {testing passed}]
+			artifProps, err := GetAllPropsForArtifact(listArtifUris[a]) // ex return: [{release stable} {testing passed}]
 			if err != nil {
 				common.LogTxtHandler().Debug("No properties returned for artifact: " + listArtifUris[a])
-			
+
 			} else {
 				// Convert custom data type 'prop' object passed out as interface{} into JSON format
 				jsonBytes, err := json.Marshal(artifProps)
@@ -217,7 +226,7 @@ func FilterListByProps(listArtifUris, listKvProps []string) (string, error) {
 				// For each returned key/value property assigned to the artifact...
 				for idx := 0; idx < len(structData); idx++ {
 					// Convert each pair to a string and format to match the listKvProps input ('key=value')
-					propName := fmt.Sprintf("%v", structData[idx]["Name"]) 
+					propName := fmt.Sprintf("%v", structData[idx]["Name"])
 					propVal := fmt.Sprintf("%v", structData[idx]["Value"])
 					propCompare := propName + "=" + propVal
 
@@ -257,6 +266,7 @@ func FilterListByProps(listArtifUris, listKvProps []string) (string, error) {
 				foundItem, err = GetLatestArtifactFromList(filteredList)
 				if err != nil {
 					common.LogTxtHandler().Error("Error getting latest created date.")
+					return "", err
 				}
 				return foundItem, nil
 			} else {
@@ -274,7 +284,7 @@ func FilterListByProps(listArtifUris, listKvProps []string) (string, error) {
 				common.LogTxtHandler().Error("Artifacts found with at least one matching property. But no artifact was found with all properties.")
 				return "", err
 			}
-			
+
 		} else {
 			err := errors.New("No matching artifacts were found.")
 			common.LogTxtHandler().Error("No matching artifacts were found.")
@@ -288,6 +298,9 @@ func SetArtifactProps(artifUri string, listKvProps []string) (string, error) {
 	// Inputs are CASE SENSITIVE
 	bearer := common.SetBearer(util.Token)
 	requestPath := artifUri + "?properties="
+	var request *http.Request
+	var err error
+	var statusCode string
 	common.LogTxtHandler().Info(">>> Setting Specified Property(ies) for: " + artifUri)
 
 	if common.ContainsSpecialChars(listKvProps) == true {
@@ -305,20 +318,23 @@ func SetArtifactProps(artifUri string, listKvProps []string) (string, error) {
 				strProps := strings.Join(listKvProps, ";")
 				common.LogTxtHandler().Debug("PROPERTIES TO BE PASSED: " + strProps)
 
-				request, err = http.NewRequest("PUT", requestPath + strProps, nil)
+				request, err = http.NewRequest("PUT", requestPath+strProps, nil)
 				common.LogTxtHandler().Debug("REQUEST: Sending 'PUT' request to: " + requestPath + strProps)
 
 			} else if len(listKvProps) == 1 && listKvProps[0] != "" {
-				request, err = http.NewRequest("PUT", requestPath + listKvProps[0], nil)
+				request, err = http.NewRequest("PUT", requestPath+listKvProps[0], nil)
 				common.LogTxtHandler().Debug("REQUEST: Sending 'PUT' request to: " + requestPath + listKvProps[0])
-				
+
 			} else {
 				err := errors.New("Unable to set Artifact properties without one or more property names and values.")
 				common.LogTxtHandler().Error("Unable to set Artifact properties without one or more property names and values.")
 				return "", err
 			}
+			if err != nil {
+				return "", err
+			}
 			request.Header.Add("Authorization", bearer)
-			
+
 			client := &http.Client{}
 			response, err := client.Do(request)
 			if err != nil {
@@ -365,6 +381,9 @@ func DeleteArtifactProps(artifUri string, listProps []string) (string, error) {
 	// If a property is provided that doesn't exist (which includes incorrectly cased properties), the API ignores this and will return a successful response
 	bearer := common.SetBearer(util.Token)
 	requestPath := artifUri + "?properties="
+	var request *http.Request
+	var err error
+	var statusCode string
 	common.LogTxtHandler().Info(">>> Deleting Specified Property(ies) for Artifact: " + artifUri)
 
 	if artifUri != "" && len(listProps) != 0 {
@@ -376,17 +395,20 @@ func DeleteArtifactProps(artifUri string, listProps []string) (string, error) {
 			common.LogTxtHandler().Debug("PROPERTIES TO BE PASSED: " + strProps)
 			common.LogTxtHandler().Debug("REQUEST: Sending 'DELETE' request to: " + requestPath + strProps)
 
-			request, err = http.NewRequest("DELETE", requestPath + strProps, nil)
+			request, err = http.NewRequest("DELETE", requestPath+strProps, nil)
 		} else if len(listProps) == 1 && listProps[0] != "" {
-			request, err = http.NewRequest("DELETE", requestPath + listProps[0], nil)
+			request, err = http.NewRequest("DELETE", requestPath+listProps[0], nil)
 			common.LogTxtHandler().Debug("REQUEST: Sending 'DELETE' request to: " + requestPath + listProps[0])
 		} else {
 			err := errors.New("Unable to delete Artifact properties without one or more property names.")
 			common.LogTxtHandler().Error("Unable to delete Artifact properties without one or more property names.")
 			return "", err
 		}
+		if err != nil {
+			return "", err
+		}
 		request.Header.Add("Authorization", bearer)
-		
+
 		client := &http.Client{}
 		response, err := client.Do(request)
 		if err != nil {

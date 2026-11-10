@@ -1,6 +1,6 @@
 # Property-based Operations Functions
 
-## GetArtifactPropValues
+## GetArtifactPropVals
 Takes in the URI of the artifact, plus one or more property keys, and returns the values for only the properties included in the URI for the given artifact. Meaning, the artifact can have more properties assigned to it, but those values will not be returned unless they were part of the request.
 
 **Searches are CASE SENSITIVE.**

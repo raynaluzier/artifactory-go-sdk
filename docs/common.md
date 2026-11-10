@@ -202,15 +202,14 @@ Performs case INSENSITIVE comparison of strings (like file names) and returns TR
 Used with `CheckPathType`; based on path type (Windows vs. Unix), checks the provided path to see if it ends with the appropriate back or forward slashes. If not present, the function will add a slash as appropriate to the platform type. This ensures the output directory path provided is formatted as required.
 
 #### Inputs
-| Name       | Description                                              | Type   | Required |
-|------------|----------------------------------------------------------|--------|:--------:|
-| inputStr   | String that was provided through some kind of user input | string | TRUE     |
-| actualStr  | String pulled from actual object name                    | string | TRUE     |
+| Name | Description                                         | Type   | Required |
+|------|-----------------------------------------------------|--------|:--------:|
+| path | Path to the directory whose ending separator to set | string | TRUE     |
 
 #### Outputs
-| Name       | Description                                               | Type |
-|------------|-----------------------------------------------------------|------|
-| ture/false | Returns true if compared string match, regardless of case | bool |
+| Name | Description                                    | Type   |
+|------|------------------------------------------------|--------|
+| path | Path ending with the platform-appropriate slash | string |
 
 
 ## ContainsSpecialChars

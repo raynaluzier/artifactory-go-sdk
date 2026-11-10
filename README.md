@@ -14,20 +14,20 @@ To run functions from this module, the following pre-requisites must be met:
 
 4. Go is installed on the system where the functions/plugin will be run: https://go.dev/doc/install
 
-5. Ensure the `GOPATH` (the local directory to where the Go app is installed) is configured, as well as the environment variable to the path of the Go binary (on Windows, this would typically be `C:\Program Files\Go\bin`, for example)
+5. Ensure the Go binary is available on `PATH`. This module uses Go modules; `GOPATH` configuration is not required.
 
 6. Populating the Global Variables (see: `/util/util.go`): **ServerApi**, **Token**, and optionally, **Logging** and **OutputDir**. This can be done when calling a function in the `tasks` package (e.g. as part of a plugin operation), by configuring the `.env` file, or statically (only recommended for testing).
 
 Every Artifactory API call requires passing the bearer token, and several require the Artifactory API server. Therefore, these MUST be set.
 
-Using .env File: Configure the `.env` file with the Artifactory Identity Token and Artifactory server; the Output Directory is optional but helpful when downloading artifacts to ensure they're placed in the desired location. Alternatively, they will be placed in the user's HOME directory. Logging provides an option to change the level of logging to display.
+The SDK does not load `.env` files itself. If you use one, load its values into the process environment before calling the SDK. The output directory is optional for downloads; without it, artifacts are written to the user's home directory.
 
     * `ARTIFACTORY_TOKEN`     - Artifactory Identity Token --> Ex:  ARTIFACTORY_TOKEN=1234567890abcdefghijklmnopqrstuv
     * `ARTIFACTORY_SERVER`    - Artifactory Server         --> Ex:  ARTIFACTORY_SERVER=https://server.com:8081/artifactory/api
     * `OUTPUTDIR` - Output directory for downloading artifacts --> Ex: OUTPUTDIR=H:\output-dir\path\ or /output-dir/path/
     * `LOGGING`   - Logging level (INFO, WARN, ERROR, DEBUG); defaults to 'INFO' --> Ex: LOGGING=DEBUG
 
-Then use `os.Getenv` to set `util.ServerApi`, `util.Token`, `util.Logging`, and `util.OutputDir` respectively.
+Then use `os.Getenv` to set `util.ServerApi`, `util.Token`, `util.Logging`, and `util.OutputDir`, or call a task function that accepts the server and token directly. Task functions currently store configuration in package globals; do not run calls using different configurations concurrently.
 
 ## Housekeeping
 - It's important to note that Artifactory property key/values, artifact URIs, download URIs, Artifactory paths (/repo/folder/...), and file names are CASE SENSITIVE. There are a few exceptions, however, it's best to assume case sensitivity for successful outcomes. This is a behavior of the Artifactory API and not something we can control. 
